@@ -1,5 +1,5 @@
 use image::ImageReader;
-use stng::{decoder::{decode_file, decode_string}, encoder::{encode_file, encode_string}};
+use stng::{decoder::decode_file, encoder::encode_file};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut img = ImageReader::open("images/dyno.png")?.decode()?;

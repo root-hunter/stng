@@ -1,6 +1,5 @@
 use image::{DynamicImage, GenericImageView};
 
-use crate::{utils::bytes_to_human};
 
 pub fn decode(img: &DynamicImage) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     let mut channels: Box<dyn Iterator<Item = u8>> = match img {
@@ -28,7 +27,7 @@ pub fn decode(img: &DynamicImage) -> Result<Vec<u8>, Box<dyn std::error::Error>>
     let mut byte = 0u8;
     let mut count = 0;
 
-    for i in 0..total_bits {
+    for _i in 0..total_bits {
         let bit = channels.next().ok_or("Image ended early (data)")? & 1;
 
         byte = (byte << 1) | bit;
