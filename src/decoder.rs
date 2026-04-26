@@ -1,4 +1,4 @@
-use image::{DynamicImage, GenericImage, GenericImageView, ImageReader};
+use image::{DynamicImage, GenericImageView};
 
 use crate::HEADER_SIZE;
 
