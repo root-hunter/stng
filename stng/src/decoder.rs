@@ -2,12 +2,27 @@ use image::DynamicImage;
 use postcard::from_bytes;
 
 use crate::auth::{EncryptionSecret, EncryptionType, SecureContext};
+use crate::data::Data;
 use crate::header::Header;
 
 pub struct Decoder;
 
 impl Decoder {
-    pub fn decode(img: &DynamicImage, secret: Option<&EncryptionSecret>) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    /// Core: reads LSB bits, reconstructs auth+header, decrypts, deserializes into `Data`.
+    pub fn decode_payload(
+        img: &DynamicImage,
+        secret: Option<&EncryptionSecret>,
+    ) -> Result<Data, Box<dyn std::error::Error>> {
+        let raw = Decoder::decode_raw(img, secret)?;
+        let data: Data = from_bytes(&raw)?;
+        Ok(data)
+    }
+
+    /// Low-level: reads LSB bits → raw decrypted bytes (the postcard-serialized Data).
+    fn decode_raw(
+        img: &DynamicImage,
+        secret: Option<&EncryptionSecret>,
+    ) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         let channels = match img {
             DynamicImage::ImageRgb8(buf) => buf
                 .pixels()
@@ -17,12 +32,11 @@ impl Decoder {
                 .pixels()
                 .flat_map(|p| [p[0], p[1], p[2]])
                 .collect::<Vec<_>>(),
-            _ => return Err("Unsupported format".into()),
+            _ => return Err("Unsupported image format".into()),
         };
 
         let mut bit_iter = channels.iter().map(|b| b & 1);
-        
-        // Legge 8 bit consecutivi e li assembla in un byte
+
         macro_rules! read_byte {
             () => {{
                 let mut byte = 0u8;
@@ -34,61 +48,68 @@ impl Decoder {
             }};
         }
 
-        // Leggi 1 byte = lunghezza dell'Auth serializzato
+        // Auth block
         let auth_len = read_byte!() as usize;
-
-        // Leggi i byte dell'Auth
         let mut auth_bytes = Vec::with_capacity(auth_len);
         for _ in 0..auth_len {
             auth_bytes.push(read_byte!());
         }
-
         let auth: SecureContext = from_bytes(&auth_bytes)?;
 
-        // Leggi 1 byte = lunghezza dell'header serializzato
+        // Header block
         let header_len = read_byte!() as usize;
-
-
-        // Leggi i byte dell'header
         let mut header_bytes = Vec::with_capacity(header_len);
         for _ in 0..header_len {
             header_bytes.push(read_byte!());
         }
-
         let header: Header = from_bytes(&header_bytes)?;
-        assert!(header.magic == *crate::MAGIC, "Invalid magic number");
+        assert_eq!(header.magic, *crate::MAGIC, "Invalid magic number");
 
-        let total_bits = header.length as usize * 8;
-        let mut out = Vec::with_capacity(header.length as usize);
-
+        // Payload
+        let mut payload = Vec::with_capacity(header.length as usize);
         let mut byte = 0u8;
-        let mut count = 0;
-
-        for _ in 0..total_bits {
+        let mut count = 0u8;
+        for _ in 0..(header.length as usize * 8) {
             let bit = bit_iter.next().ok_or("Image ended early")?;
             byte = (byte << 1) | bit;
             count += 1;
             if count == 8 {
-                out.push(byte);
+                payload.push(byte);
                 byte = 0;
                 count = 0;
             }
         }
 
-        // Applica decifratura se necessario
-        let out = if !matches!(auth.encryption_type, EncryptionType::None) {
+        // Decrypt if needed
+        let payload = if !matches!(auth.encryption_type, EncryptionType::None) {
             let s = secret.ok_or("Secret required for decryption")?;
-            auth.decrypt(&out, s)?
+            auth.decrypt(&payload, s)?
         } else {
-            out
+            payload
         };
 
-        Ok(out)
+        Ok(payload)
     }
 
-    pub fn decode_string(img: &DynamicImage, secret: Option<&EncryptionSecret>) -> Result<String, Box<dyn std::error::Error>> {
-        let bytes = Decoder::decode(img, secret)?;
-        Ok(String::from_utf8(bytes)?)
+    // ── Convenience wrappers ──────────────────────────────────────────────────
+
+    pub fn decode_string(
+        img: &DynamicImage,
+        secret: Option<&EncryptionSecret>,
+    ) -> Result<String, Box<dyn std::error::Error>> {
+        let data = Decoder::decode_payload(img, secret)?;
+        data.first_as_string()
+            .ok_or_else(|| "No readable text entry found in payload".into())
+    }
+
+    pub fn decode_bytes(
+        img: &DynamicImage,
+        secret: Option<&EncryptionSecret>,
+    ) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+        let data = Decoder::decode_payload(img, secret)?;
+        data.first_bytes()
+            .map(|b| b.to_vec())
+            .ok_or_else(|| "No entry found in payload".into())
     }
 
     pub fn decode_file(
@@ -96,12 +117,8 @@ impl Decoder {
         output_path: &str,
         secret: Option<&EncryptionSecret>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let bytes = Decoder::decode(img, secret)?;
+        let bytes = Decoder::decode_bytes(img, secret)?;
         std::fs::write(output_path, bytes)?;
         Ok(())
-    }
-
-    pub fn decode_bytes(img: &DynamicImage, secret: Option<&EncryptionSecret>) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-        Decoder::decode(img, secret)
     }
 }

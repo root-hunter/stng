@@ -3,6 +3,7 @@ pub mod encoder;
 pub mod header;
 pub mod utils;
 pub mod auth;
+pub mod data;
 
 pub const MAGIC: &[u8; 4] = b"STNG";
 
@@ -147,5 +148,27 @@ mod tests {
         Encoder::encode_string(&mut img, data, Some(&secret)).unwrap();
         let extracted_data = Decoder::decode_string(&img, Some(&secret)).unwrap();
         assert_eq!(data, extracted_data);
+    }
+
+    #[test]
+    fn test_multi_payload() {
+        use crate::data::{Data, DataElement};
+
+        let mut img = ImageReader::open(asset("images/dyno.png"))
+            .unwrap()
+            .decode()
+            .unwrap();
+
+        let payload = Data::new()
+            .add(DataElement::text("title", "Hello, world!"))
+            .add(DataElement::text("note", "This is a second entry"))
+            .add(DataElement::binary("raw", vec![1, 2, 3, 4, 5]));
+
+        Encoder::encode_payload(&mut img, &payload, None).unwrap();
+
+        let decoded = Decoder::decode_payload(&img, None).unwrap();
+        assert_eq!(decoded.get_text("title"), Some("Hello, world!"));
+        assert_eq!(decoded.get_text("note"), Some("This is a second entry"));
+        assert_eq!(decoded.get_bytes("raw"), Some([1u8, 2, 3, 4, 5].as_slice()));
     }
 }

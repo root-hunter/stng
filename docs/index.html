@@ -38,8 +38,8 @@
     <!-- ── ENCODE PANEL ── -->
     <section id="encode-section" class="panel active">
       <div class="panel-header">
-        <h2>Hide a message</h2>
-        <p class="panel-desc">Upload a PNG/JPG image and write the text you want to hide in its pixels.</p>
+        <h2>Hide data</h2>
+        <p class="panel-desc">Upload a PNG/JPG image, then add one or more text messages or files to hide inside it.</p>
       </div>
 
       <!-- Drop zone image -->
@@ -62,11 +62,18 @@
         </div>
         <div class="capacity-sub" id="capacity-sub"></div>
       </div>
-        <label for="encode-message">
-          Secret message
-          <span class="char-count" id="encode-char-count">0 characters</span>
-        </label>
-        <textarea id="encode-message" rows="5" placeholder="Write the message to hide inside the image..."></textarea>
+
+      <!-- Entry list -->
+      <div class="entries-block">
+        <div class="entries-header">
+          <span class="entries-label">📦 Payload entries</span>
+          <span class="entries-count" id="entries-count">0 entries</span>
+        </div>
+        <div id="entries-list"></div>
+        <div class="entries-add-row">
+          <button class="btn btn-add" id="add-text-btn" disabled>＋ Text</button>
+          <button class="btn btn-add" id="add-file-btn" disabled>＋ File</button>
+        </div>
       </div>
 
       <!-- Encryption options -->
@@ -102,10 +109,10 @@
           <span class="result-icon success">✅</span>
           <strong>Image encoded successfully!</strong>
         </div>
-        <canvas id="encode-output-preview"></canvas>
-        <a id="encode-download" class="btn btn-success" download="stng_encoded.png">
+        <a id="encode-download" class="btn btn-success w-100" download="stng_encoded.png">
           ⬇ Download image
         </a>
+        <canvas id="encode-output-preview"></canvas>
       </div>
     </section>
 
@@ -156,10 +163,9 @@
       <div id="decode-result" class="result-box" hidden>
         <div class="result-header">
           <span class="result-icon success">✅</span>
-          <strong>Message extracted!</strong>
+          <strong>Payload extracted!</strong>
         </div>
-        <pre id="decode-output"></pre>
-        <button class="btn btn-outline" id="copy-btn">📋 Copy text</button>
+        <div id="decode-entries"></div>
       </div>
     </section>
 
