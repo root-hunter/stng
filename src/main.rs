@@ -61,8 +61,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     _ => unreachable!(),
                 }
             }
-
-            data_binary.remove(0);
+            if x * 3 + j != 32 {
+                data_binary.remove(0);
+            }
         }
 
         img.put_pixel(x, y, image::Rgba([r, g, b, a]));
