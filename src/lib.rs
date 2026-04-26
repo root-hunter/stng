@@ -2,8 +2,6 @@ pub mod decoder;
 pub mod encoder;
 pub mod utils;
 
-pub const HEADER_SIZE: usize = 32; // 32 bits to store the length of the data
-
 mod tests {
     use image::ImageReader;
     use crate::{decoder::decode_string, encoder::encode_string};

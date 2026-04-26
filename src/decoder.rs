@@ -1,63 +1,47 @@
 use image::{DynamicImage, GenericImageView};
 
-use crate::{HEADER_SIZE, utils::bytes_to_human};
+use crate::{utils::bytes_to_human};
 
 pub fn decode(img: &DynamicImage) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-    let width = img.width();
+    let mut channels: Box<dyn Iterator<Item = u8>> = match img {
+        DynamicImage::ImageRgb8(buf) => {
+            Box::new(buf.pixels().flat_map(|p| [p[0], p[1], p[2]]))
+        }
+        DynamicImage::ImageRgba8(buf) => {
+            Box::new(buf.pixels().flat_map(|p| [p[0], p[1], p[2]]))
+        }
+        _ => return Err("Unsupported format".into()),
+    };
 
-    let mut extracted_data_binary = String::new();
-    let mut data_length_binary = String::new();
+    // ---- HEADER (32 bit) ----
+    let mut header: u32 = 0;
 
-    while data_length_binary.len() < HEADER_SIZE {
-        let pixel_index = data_length_binary.len() / 3;
-        let x = (pixel_index % width as usize) as u32;
-        let y = (pixel_index / width as usize) as u32;
+    for _ in 0..32 {
+        let byte = channels.next().ok_or("Image too small (header)")?;
+        header = (header << 1) | (byte & 1) as u32;
+    }
 
-        let pixel = img.get_pixel(x, y);
+    let total_bits = header as usize * 8;
 
-        for j in 0..3 {
-            if data_length_binary.len() >= HEADER_SIZE {
-                break;
-            }
+    let mut out = Vec::with_capacity(header as usize);
 
-            let bit = pixel[j] & 1;
-            data_length_binary.push_str(&format!("{}", bit));
+    let mut byte = 0u8;
+    let mut count = 0;
+
+    for i in 0..total_bits {
+        let bit = channels.next().ok_or("Image ended early (data)")? & 1;
+
+        byte = (byte << 1) | bit;
+        count += 1;
+
+        if count == 8 {
+            out.push(byte);
+            byte = 0;
+            count = 0;
         }
     }
 
-    let data_length = u32::from_str_radix(&data_length_binary, 2).unwrap();
-
-    println!("Extracted data length: {}", data_length);
-
-    let total_bits = HEADER_SIZE + data_length as usize * 8;
-    let mut i = HEADER_SIZE; // Start after the header
-    while i < total_bits {
-        let pixel_index = i / 3;
-        let channel = i % 3;
-        let x = (pixel_index % width as usize) as u32;
-        let y = (pixel_index / width as usize) as u32;
-
-        let pixel = img.get_pixel(x, y);
-        let bit = pixel[channel] & 1;
-        extracted_data_binary.push_str(&format!("{}", bit));
-
-        i += 1;
-    }
-
-    assert!(extracted_data_binary.len() / 8 == data_length as usize, "Extracted data length does not match the expected length");
-
-    println!("Bytes extracted: {}", bytes_to_human(extracted_data_binary.len() as u64 / 8));
-
-    let extracted_data_bytes = extracted_data_binary
-        .as_bytes()
-        .chunks(8)
-        .map(|chunk| {
-            let byte_str = std::str::from_utf8(chunk).unwrap();
-            u8::from_str_radix(byte_str, 2).unwrap()
-        })
-        .collect::<Vec<u8>>();
-
-    Ok(extracted_data_bytes)
+    Ok(out)
 }
 
 pub fn decode_string(img: &DynamicImage) -> Result<String, Box<dyn std::error::Error>> {
