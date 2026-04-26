@@ -1,11 +1,10 @@
 use image::ImageReader;
-use stng::{decoder::Decoder, encoder::Encoder, utils::bytes_to_human};
+use stng::{decoder::Decoder, encoder::Encoder, utils::{bytes_to_human, init_logging}};
 use tracing::info;
-use tracing_subscriber;
-
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    tracing_subscriber::fmt::init();
+    init_logging();
+
     let image_path = "images/dyno.png";
 
     let mut img = ImageReader::open(image_path)?.decode()?;
@@ -21,7 +20,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let file_path = "texts/commedia.txt";
 
-    let img = Encoder::encode_file(&mut img, file_path)?;
+    Encoder::encode_file(&mut img, file_path)?;
     img.save("images/encoded_image.png")?;
 
     let img2 = ImageReader::open("images/encoded_image.png")?.decode()?;

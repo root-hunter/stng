@@ -10,3 +10,7 @@ pub fn bytes_to_human(bytes: u64) -> String {
 
     format!("{:.2} {}", size, units[unit])
 }
+
+pub fn init_logging() {
+    tracing_subscriber::fmt::init();
+}
