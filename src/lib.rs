@@ -3,8 +3,6 @@ pub mod encoder;
 pub mod utils;
 
 mod tests {
-    
-    
 
     #[test]
     fn test_steganography() {

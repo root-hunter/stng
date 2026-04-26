@@ -1,14 +1,9 @@
 use image::{DynamicImage, GenericImageView};
 
-
 pub fn decode(img: &DynamicImage) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     let mut channels: Box<dyn Iterator<Item = u8>> = match img {
-        DynamicImage::ImageRgb8(buf) => {
-            Box::new(buf.pixels().flat_map(|p| [p[0], p[1], p[2]]))
-        }
-        DynamicImage::ImageRgba8(buf) => {
-            Box::new(buf.pixels().flat_map(|p| [p[0], p[1], p[2]]))
-        }
+        DynamicImage::ImageRgb8(buf) => Box::new(buf.pixels().flat_map(|p| [p[0], p[1], p[2]])),
+        DynamicImage::ImageRgba8(buf) => Box::new(buf.pixels().flat_map(|p| [p[0], p[1], p[2]])),
         _ => return Err("Unsupported format".into()),
     };
 
@@ -49,7 +44,10 @@ pub fn decode_string(img: &DynamicImage) -> Result<String, Box<dyn std::error::E
     Ok(extracted_data)
 }
 
-pub fn decode_file(img: &DynamicImage, output_path: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub fn decode_file(
+    img: &DynamicImage,
+    output_path: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
     let extracted_data_bytes = decode(img)?;
     std::fs::write(output_path, extracted_data_bytes)?;
 

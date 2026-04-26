@@ -4,7 +4,6 @@ pub fn encode(
     img: &mut DynamicImage,
     data: &[u8],
 ) -> Result<DynamicImage, Box<dyn std::error::Error>> {
-
     let (width, height) = (img.width(), img.height());
     let capacity = (width * height * 3) as usize;
 
@@ -55,7 +54,10 @@ pub fn encode(
     Ok(img.clone())
 }
 
-pub fn encode_string(img: &mut DynamicImage, data: &str) -> Result<DynamicImage, Box<dyn std::error::Error>> {
+pub fn encode_string(
+    img: &mut DynamicImage,
+    data: &str,
+) -> Result<DynamicImage, Box<dyn std::error::Error>> {
     encode(img, data.as_bytes())
 }
 
