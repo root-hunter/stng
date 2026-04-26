@@ -3,7 +3,7 @@ use stng::{decoder::decode_string, encoder::encode_string};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut img = ImageReader::open("images/stego.jpg")?.decode()?;
-    let data = "Ciao a tutti mi chiamo Antonio!!!!";
+    let data = "Ciao a conshg gfhhfg fg gfjkgdsa dsad sad asd asd as dh gfhg hfgglhj jhgghj hjg jhghj jhghj hf ghffhg dfgdf dfg gfdgdf  dgfctetdsadas asasd ahgf ghfhg fgfh hgfasd ur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore Ciao a tutti";
 
     encode_string(&mut img, data)?;
 
@@ -18,29 +18,34 @@ mod tests {
 
     #[test]
     fn test_steganography() {
-        let data = "Hello my name is tony!";
-        let data_bytes = data.as_bytes();
-        let data_length = data_bytes.len() as u32;
+        let mut img = ImageReader::open("images/stego.jpg").unwrap().decode().unwrap();
+        let data = "Ciao a tutti mi chiaddsa dsasd asd as dsa dsa adsa asdd d samo Antonio!!!!";
 
-        let data_length_bytes = data_length.to_be_bytes();
+        encode_string(&mut img, data).unwrap();
 
-        let mut data_binary = data_length_bytes
-            .iter()
-            .map(|byte| format!("{:08b}", byte))
-            .collect::<Vec<String>>()
-            .join("");
+        let extracted_data = decode_string(&img).unwrap();
+        assert_eq!(data, extracted_data);
+    }
 
-        println!("Data length in bytes: {}", data_length);
-        println!("Data length in binary: {}", data_binary);
+    #[test]
+    fn test_empty_string() {
+        let mut img = ImageReader::open("images/stego.jpg").unwrap().decode().unwrap();
+        let data = "";
 
-        data_binary.push_str(
-            &data_bytes
-                .iter()
-                .map(|byte| format!("{:08b}", byte))
-                .collect::<Vec<String>>()
-                .join(""),
-        );
+        encode_string(&mut img, data).unwrap();
 
-        println!("Final binary string: {}", data_binary);
+        let extracted_data = decode_string(&img).unwrap();
+        assert_eq!(data, extracted_data);
+    }
+
+    #[test]
+    fn test_long_string() {
+        let mut img = ImageReader::open("images/stego.jpg").unwrap().decode().unwrap();
+        let data = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
+
+        encode_string(&mut img, data).unwrap();
+
+        let extracted_data = decode_string(&img).unwrap();
+        assert_eq!(data, extracted_data);
     }
 }

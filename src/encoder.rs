@@ -68,9 +68,7 @@ pub fn encode(img: &mut DynamicImage, data: &[u8]) -> Result<(), Box<dyn std::er
                     _ => unreachable!(),
                 }
             }
-            if HEADER_SIZE % 2 != 1 && x * 3 + j != HEADER_SIZE as u32 {
-                data_binary.remove(0);
-            }
+            data_binary.remove(0);
         }
 
         img.put_pixel(x, y, image::Rgba([r, g, b, a]));
