@@ -1,17 +1,21 @@
-use image::{GenericImage, GenericImageView, ImageReader};
+use image::{DynamicImage, GenericImage, GenericImageView, ImageReader};
 
 pub const HEADER_SIZE: usize = 32; // 32 bits to store the length of the data
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut img = ImageReader::open("images/stego.jpg")?.decode()?;
+fn encode(img: &mut DynamicImage, data: &[u8]) -> Result<(), Box<dyn std::error::Error>> {
+    let width = img.width();
+    let height = img.height();
+    let pixels_count = width * height;
 
-    let data = "Hello my name is tony!";
-    let data_bytes = data.as_bytes();
-    let data_length = data_bytes.len() as u32;
+    println!("Image dimensions: {}x{}", width, height);
+    println!("Total number of pixels: {}", pixels_count);
+    println!("Bits needed for header encoding: {}", HEADER_SIZE);
 
+    let data_length = data.len() as u32;
     let data_length_bytes = data_length.to_be_bytes();
 
-    let mut data_binary = data_length_bytes.iter()
+    let mut data_binary = data_length_bytes
+        .iter()
         .map(|byte| format!("{:08b}", byte))
         .collect::<Vec<String>>()
         .join("");
@@ -19,17 +23,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Data length in bytes: {}", data_length);
     println!("Data length in binary: {}", data_binary);
 
-    data_binary.push_str(&data_bytes.iter()
-        .map(|byte| format!("{:08b}", byte))
-        .collect::<Vec<String>>()
-        .join(""));
-    
-    let width = img.width();
-    let height = img.height();
-    let pixels_count = width * height;
+    data_binary.push_str(
+        &data
+            .iter()
+            .map(|byte| format!("{:08b}", byte))
+            .collect::<Vec<String>>()
+            .join(""),
+    );
 
-    println!("Image dimensions: {}x{}", width, height);
-    println!("Total number of pixels: {}", pixels_count);
+    println!(
+        "Bits needed for data encoding: {}",
+        data_binary.len() - HEADER_SIZE
+    );
 
     let mut x = 0;
     let mut y = 0;
@@ -79,14 +84,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     img.save("images/encoded_image.png")?;
 
-    // decode
-    let img = ImageReader::open("images/encoded_image.png")?.decode()?;
-    let mut extracted_data_binary = String::new();
+    Ok(())
+}
 
-    // Read data length from the first 32 bits
+fn encode_string(img: &mut DynamicImage, data: &str) -> Result<(), Box<dyn std::error::Error>> {
+    encode(img, data.as_bytes())
+}
+
+fn decode(img: &DynamicImage) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    let width = img.width();
+
+    let mut extracted_data_binary = String::new();
     let mut data_length_binary = String::new();
+
     while data_length_binary.len() < HEADER_SIZE {
-        let pixel = img.get_pixel((data_length_binary.len() / 3) as u32, (data_length_binary.len() / 3 / width as usize) as u32);
+        let pixel = img.get_pixel(
+            (data_length_binary.len() / 3) as u32,
+            (data_length_binary.len() / 3 / width as usize) as u32,
+        );
 
         for j in 0..3 {
             if data_length_binary.len() >= HEADER_SIZE {
@@ -98,10 +113,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    println!("Extracted data length binary: {}", data_length_binary);
-    println!("Extracted data length binary (first 32 bits): {}", &data_length_binary);
-
     let data_length = u32::from_str_radix(&data_length_binary, 2).unwrap();
+
+    println!("Extracted data length binary: {}", data_length_binary);
     println!("Extracted data length: {}", data_length);
 
     let mut i = 0; // Start after the first 32 bits which represent the data length
@@ -128,7 +142,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    println!("extracted_data_binary length: {}", extracted_data_binary.len());
+    println!(
+        "extracted_data_binary length: {}",
+        extracted_data_binary.len()
+    );
     println!("Extracted binary data: {}", extracted_data_binary);
 
     let extracted_data_bytes = extracted_data_binary
@@ -140,7 +157,55 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         })
         .collect::<Vec<u8>>();
 
-    let extracted_data = String::from_utf8(extracted_data_bytes).unwrap();
+    Ok(extracted_data_bytes)
+}
+
+fn decode_string(img: &DynamicImage) -> Result<String, Box<dyn std::error::Error>> {
+    let extracted_data_bytes = decode(img)?;
+    let extracted_data = String::from_utf8(extracted_data_bytes)?;
+    Ok(extracted_data)
+}
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let mut img = ImageReader::open("images/stego.jpg")?.decode()?;
+    let data = "Hello my name is tony!";
+
+    encode_string(&mut img, data)?;
+
+    let extracted_data = decode_string(&img)?;
     println!("Extracted data: {}", extracted_data);
+
     Ok(())
+}
+
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_steganography() {
+        let data = "Hello my name is tony!";
+        let data_bytes = data.as_bytes();
+        let data_length = data_bytes.len() as u32;
+
+        let data_length_bytes = data_length.to_be_bytes();
+
+        let mut data_binary = data_length_bytes
+            .iter()
+            .map(|byte| format!("{:08b}", byte))
+            .collect::<Vec<String>>()
+            .join("");
+
+        println!("Data length in bytes: {}", data_length);
+        println!("Data length in binary: {}", data_binary);
+
+        data_binary.push_str(
+            &data_bytes
+                .iter()
+                .map(|byte| format!("{:08b}", byte))
+                .collect::<Vec<String>>()
+                .join(""),
+        );
+
+        println!("Final binary string: {}", data_binary);
+    }
 }
