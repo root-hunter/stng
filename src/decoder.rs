@@ -1,4 +1,4 @@
-use image::{DynamicImage, GenericImageView};
+use image::{DynamicImage};
 
 pub fn decode(img: &DynamicImage) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     let mut channels: Box<dyn Iterator<Item = u8>> = match img {
