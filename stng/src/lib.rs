@@ -120,7 +120,7 @@ mod tests {
 
     #[test]
     fn test_aes_encryption() {
-        use crate::auth::{EncryptionSecret, EncryptionType, SecureContext};
+        use crate::auth::{EncryptionSecret};
 
         let mut img = ImageReader::open(asset("images/dyno.png"))
             .unwrap()
@@ -128,6 +128,22 @@ mod tests {
             .unwrap();
         let data = "This is a secret message that will be encrypted using AES-256.";
         let secret = EncryptionSecret::Aes256(vec![0; 32]); // Chiave fittizia per il test
+        Encoder::encode_string(&mut img, data, Some(&secret)).unwrap();
+        let extracted_data = Decoder::decode_string(&img, Some(&secret)).unwrap();
+        assert_eq!(data, extracted_data);
+    }
+
+    #[test]
+    fn test_xor_encryption() {
+        use crate::auth::{EncryptionSecret};
+
+        let mut img = ImageReader::open(asset("images/dyno.png"))
+            .unwrap()
+            .decode()
+            .unwrap();
+
+        let data = "This is a secret message that will be encrypted using XOR.";
+        let secret = EncryptionSecret::Xor(vec![0xAA, 0x55]); // Chiave fittizia per il test
         Encoder::encode_string(&mut img, data, Some(&secret)).unwrap();
         let extracted_data = Decoder::decode_string(&img, Some(&secret)).unwrap();
         assert_eq!(data, extracted_data);

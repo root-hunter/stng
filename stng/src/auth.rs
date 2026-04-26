@@ -10,6 +10,12 @@ pub enum EncryptionType {
     Aes256,
 }
 
+pub enum EncryptionSecret {
+    None,
+    Xor(Vec<u8>),
+    Aes256(Vec<u8>), // deve essere esattamente 32 byte
+}
+
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]
 pub struct SecureContext {
     pub encryption_type: EncryptionType,
@@ -65,10 +71,4 @@ impl SecureContext {
             _ => Err("Mismatched encryption type and secret".into()),
         }
     }
-}
-
-pub enum EncryptionSecret {
-    None,
-    Xor(Vec<u8>),
-    Aes256(Vec<u8>), // deve essere esattamente 32 byte
 }
