@@ -12,6 +12,7 @@
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
     rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 </head>
 
 <body>
@@ -24,8 +25,7 @@
   <header>
     <div class="badge">WebAssembly · Rust · LSB</div>
     <h1><span class="gradient-text">stng</span></h1>
-    <p class="subtitle">Hide secret messages inside your images.<br>LSB steganography compiled to WebAssembly with Rust.
-    </p>
+    <p class="subtitle">Hide secret messages inside your images.</p>
     <div class="hero-chips">
       <span class="chip">🔒 Zero server</span>
       <span class="chip">⚡ Instant</span>
@@ -45,12 +45,12 @@
     <section id="encode-section" class="panel active">
       <div class="panel-header">
         <h2>Hide data</h2>
-        <p class="panel-desc">Upload a PNG/JPG image, then add one or more text messages or files to hide inside it.</p>
+        <p class="panel-desc">Upload an image, then add one or more text messages or files to hide inside it.</p>
       </div>
 
       <!-- Drop zone image -->
       <div class="dropzone" id="encode-dropzone">
-        <input type="file" id="encode-image" accept="image/png,image/jpeg" />
+        <input type="file" id="encode-image" accept="image/png,image/jpeg,image/jpg,image/webp" />
         <div class="dropzone-inner" id="encode-dropzone-inner">
           <div class="dropzone-icon">🖼️</div>
           <p class="dropzone-text">Drag an image here<br><span>or click to select one</span></p>
@@ -137,6 +137,9 @@
         <a id="encode-download" class="btn btn-success w-100" download="stng_encoded.png">
           ⬇ Download image
         </a>
+        <button id="encode-download-zip" class="btn btn-secondary w-100" style="margin-top:0.5em;">
+          ⬇ Download as ZIP
+        </button>
       </div>
     </section>
 
@@ -191,13 +194,16 @@
           <strong>Payload extracted!</strong>
         </div>
         <div id="decode-entries"></div>
+        <button id="decode-download-json" class="btn btn-secondary w-100" style="margin-top:0.5em;">
+          ⬇ Text values as JSON
+        </button>
       </div>
     </section>
 
   </main>
 
   <footer>
-    <p>Made with 🦀 Rust + ⚡ WASM ·
+    <p>Powered by 
       <a href="https://github.com/root-hunter" target="_blank" rel="noopener">root-hunter</a>
     </p>
   </footer>

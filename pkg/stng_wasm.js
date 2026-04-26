@@ -192,6 +192,26 @@ export function encode_string_secure(image_bytes, message, encryption, key, comp
     wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
     return v5;
 }
+
+/**
+ * Create a ZIP archive containing the encoded image. Returns the ZIP as Vec<u8>.
+ * @param {Uint8Array} image_bytes
+ * @param {string} filename
+ * @returns {Uint8Array}
+ */
+export function zip_encoded_image(image_bytes, filename) {
+    const ptr0 = passArray8ToWasm0(image_bytes, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ptr1 = passStringToWasm0(filename, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len1 = WASM_VECTOR_LEN;
+    const ret = wasm.zip_encoded_image(ptr0, len0, ptr1, len1);
+    if (ret[3]) {
+        throw takeFromExternrefTable0(ret[2]);
+    }
+    var v3 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+    return v3;
+}
 function __wbg_get_imports() {
     const import0 = {
         __proto__: null,

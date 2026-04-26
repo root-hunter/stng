@@ -1,9 +1,71 @@
+// ── Utility: Suffix for filenames ──
+function getDateSuffix() {
+  const d = new Date();
+  return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}_${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}${String(d.getSeconds()).padStart(2,'0')}`;
+}
+
+// ── Download decoded as JSON ──
+document.getElementById("decode-download-json").addEventListener("click", () => {
+  const suffix = getDateSuffix();
+  // Recupera i dati attualmente visualizzati
+  const cards = decodeEntries.querySelectorAll('.decoded-card');
+  if (!cards.length) return showError("No decoded entries to export");
+  // Ricostruisci l'array come in renderDecodeEntries
+  const entries = [];
+  cards.forEach(card => {
+    const name = card.querySelector('.decoded-card-name')?.textContent || "";
+    if (card.querySelector('.entry-type-badge.text')) {
+      // Text
+      const value = card.querySelector('.decoded-text')?.textContent || "";
+      entries.push({ name, type: "text", value });
+    }
+  });
+  const blob = new Blob([JSON.stringify(entries, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `stng_decoded_${suffix}.json`;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 100);
+});
 // I file WASM generati da wasm-pack vengono messi in pkg/
 // Esegui: wasm-pack build stng-wasm --target web --out-dir ../docs/pkg
 import init, {
   encode_payload, decode_payload,
   encode_max_capacity, encode_payload_size,
+  zip_encoded_image,
 } from "./pkg/stng_wasm.js";
+// ── Download as ZIP (WASM, no external deps) ──
+document.getElementById("encode-download-zip").addEventListener("click", async () => {
+  try {
+    const suffix = getDateSuffix();
+    // Recupera i byte dell'immagine codificata
+    const url = encodeDownload.href;
+    if (!url) return showError("No encoded image to download");
+    const response = await fetch(url);
+    const imgBlob = await response.blob();
+    const imgBytes = new Uint8Array(await imgBlob.arrayBuffer());
+    // Crea ZIP via WASM
+    const zipBytes = zip_encoded_image(imgBytes, `stng_encoded_${suffix}.png`);
+    const zipBlob = new Blob([zipBytes], { type: "application/zip" });
+    const zipUrl = URL.createObjectURL(zipBlob);
+    const a = document.createElement("a");
+    a.href = zipUrl;
+    a.download = `stng_encoded_${suffix}.zip`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(zipUrl);
+    }, 100);
+  } catch (err) {
+    showError("ZIP download failed: " + (err?.toString() ?? "Unknown error"));
+  }
+});
 
 // ── Utility ──────────────────────────────────────────────────────────────────
 
@@ -267,7 +329,7 @@ function addFileEntry() {
   card.innerHTML = `
     <div class="entry-card-header">
       <span class="entry-type-badge file">📎 File</span>
-      <input class="entry-name-input" type="text" placeholder="File name (auto)" value="" />
+      <span class="entry-file-realname">(no file)</span>
       <button class="entry-remove-btn" title="Remove">✕</button>
     </div>
     <label class="entry-file-label">
@@ -276,23 +338,19 @@ function addFileEntry() {
     </label>
   `;
 
-  const nameInput  = card.querySelector(".entry-name-input");
+  const realNameSpan = card.querySelector(".entry-file-realname");
   const fileInput  = card.querySelector(".entry-file-input");
   const fileText   = card.querySelector(".entry-file-text");
   const removeBtn  = card.querySelector(".entry-remove-btn");
 
-  nameInput.addEventListener("input", () => {
-    const e = entries.find(e => e.id === id);
-    if (e) e.name = nameInput.value;
-    updateCapacityBar();
-  });
   fileInput.addEventListener("change", () => {
     const file = fileInput.files[0];
     if (!file) return;
     const e = entries.find(e => e.id === id);
     if (e) {
       e.value = file;
-      if (!e.name) { e.name = file.name; nameInput.value = file.name; }
+      e.name = file.name; // sempre il vero nome
+      realNameSpan.textContent = file.name;
       fileText.textContent = `${file.name} (${formatBytes(file.size)})`;
       updateCapacityBar();
       updateEncodeBtn();
@@ -385,7 +443,9 @@ encodeBtn.addEventListener("click", async () => {
     const result     = encode_payload(imageBytes, JSON.stringify(payload), enc, key, compress);
     const url        = bytesToObjectURL(result);
 
+    const suffix = getDateSuffix();
     encodeDownload.href = url;
+    encodeDownload.download = `stng_encoded_${suffix}.png`;
     await drawOnCanvas(encodeOutputCanvas, url);
     encodeResult.hidden = false;
     showSuccess(`${payload.length} ${payload.length === 1 ? "entry" : "entries"} hidden in the image!` + (compress ? " (compressed)" : " (no compression)"));

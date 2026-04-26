@@ -17,6 +17,11 @@ export function encode_string(image_bytes: Uint8Array, message: string): Uint8Ar
 
 export function encode_string_secure(image_bytes: Uint8Array, message: string, encryption: string, key: Uint8Array, compress: boolean): Uint8Array;
 
+/**
+ * Create a ZIP archive containing the encoded image. Returns the ZIP as Vec<u8>.
+ */
+export function zip_encoded_image(image_bytes: Uint8Array, filename: string): Uint8Array;
+
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
@@ -29,6 +34,7 @@ export interface InitOutput {
     readonly encode_payload_size: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
     readonly encode_string: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly encode_string_secure: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number) => [number, number, number, number];
+    readonly zip_encoded_image: (a: number, b: number, c: number, d: number) => [number, number, number, number];
     readonly __wbindgen_exn_store: (a: number) => void;
     readonly __externref_table_alloc: () => number;
     readonly __wbindgen_externrefs: WebAssembly.Table;
