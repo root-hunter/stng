@@ -3,7 +3,7 @@ use stng::{decoder::decode_string, encoder::encode_string};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut img = ImageReader::open("images/stego.jpg")?.decode()?;
-    let data = "Ciao a conshg gfhhfg fg gfjkgdsa dsad sad asd asd as dh gfhg hfgglhj jhgghj hjg jhghj jhghj hf ghffhg dfgdf dfg gfdgdf  dgfctetdsadas asasd ahgf ghfhg fgfh hgfasd ur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore Ciao a tutti";
+    let data = "Ciao a tutti mi chiaddsa dsasd asd as dsa dsa adsa asdd d samo Antonio!!!! こんにちは世界";
 
     encode_string(&mut img, data)?;
 
@@ -45,6 +45,16 @@ mod tests {
 
         encode_string(&mut img, data).unwrap();
 
+        let extracted_data = decode_string(&img).unwrap();
+        assert_eq!(data, extracted_data);
+    }
+
+    #[test]
+    fn test_non_ascii_string() {
+        let mut img = ImageReader::open("images/stego.jpg").unwrap().decode().unwrap();
+        let data = "Ciao a tutti mi chiaddsa dsasd asd as dsa dsa adsa asdd d samo Antonio!!!! こんにちは世界";
+
+        encode_string(&mut img, data).unwrap();
         let extracted_data = decode_string(&img).unwrap();
         assert_eq!(data, extracted_data);
     }
