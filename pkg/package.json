@@ -1,0 +1,15 @@
+{
+  "name": "stng-wasm",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "stng_wasm_bg.wasm",
+    "stng_wasm.js",
+    "stng_wasm.d.ts"
+  ],
+  "main": "stng_wasm.js",
+  "types": "stng_wasm.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
