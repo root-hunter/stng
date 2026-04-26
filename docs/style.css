@@ -1,4 +1,39 @@
-/* --- Encoder panel visual improvements --- */
+#encode-section .compress-block {
+  margin-bottom: 1.2rem;
+  margin-top: 0.5rem;
+  background: rgba(108,140,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 1px 8px rgba(108,140,255,0.03);
+  padding: 1.1rem 1.2rem 0.7rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+#encode-section .compress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.2em;
+}
+#encode-section .compress-label {
+  font-weight: 600;
+  font-size: 1.05em;
+  color: var(--accent);
+  letter-spacing: 0.01em;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+#encode-section .compress-switch {
+  margin-left: 1em;
+}
+#encode-section .compress-desc {
+  font-size: 0.92em;
+  color: var(--text-soft);
+  margin-left: 0.1em;
+  margin-bottom: 0.2em;
+}
 #encode-section.panel {
   background: var(--surface);
   border: 1px solid var(--surface2);
@@ -190,23 +225,54 @@
   margin-left: 0.5em;
 }
 
+
 .btn-add {
   display: inline-flex;
   align-items: center;
-  gap: 0.4em;
-  background: #007bff;
+  gap: 0.5em;
+  background: linear-gradient(135deg, #6c8cff 60%, #a78bfa 100%);
   color: #fff;
   border: none;
-  border-radius: 6px;
-  padding: 0.45em 1.1em;
-  font-size: 1em;
-  font-weight: 500;
+  border-radius: 999px;
+  padding: 0.7em 1.5em;
+  font-size: 1.08em;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.18s;
+  box-shadow: 0 2px 12px rgba(108,140,255,0.10);
+  transition: background 0.18s, box-shadow 0.18s, transform 0.12s;
   margin-bottom: 0.7em;
+  position: relative;
+  overflow: hidden;
 }
-.btn-add:hover {
-  background: #0056b3;
+.btn-add:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-add:hover:not(:disabled) {
+  background: linear-gradient(135deg, #5a7be6 60%, #8e6cfb 100%);
+  box-shadow: 0 4px 18px rgba(108,140,255,0.18);
+  transform: translateY(-2px) scale(1.03);
+}
+.btn-entry {
+  min-width: 130px;
+  justify-content: center;
+  font-size: 1.08em;
+  letter-spacing: 0.01em;
+  margin-right: 0.7em;
+}
+.btn-entry:last-child {
+  margin-right: 0;
+}
+.btn-entry-icon {
+  font-size: 1.25em;
+  margin-right: 0.3em;
+  display: flex;
+  align-items: center;
+}
+.btn-entry-label {
+  font-weight: 600;
+  font-size: 1em;
+  letter-spacing: 0.01em;
 }
 
 /* Decoded cards */

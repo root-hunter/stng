@@ -71,9 +71,27 @@
         </div>
         <div id="entries-list"></div>
         <div class="entries-add-row">
-          <button class="btn btn-add" id="add-text-btn" disabled>＋ Text</button>
-          <button class="btn btn-add" id="add-file-btn" disabled>＋ File</button>
+          <button class="btn btn-add btn-entry" id="add-text-btn" disabled>
+            <span class="btn-entry-icon">📝</span>
+            <span class="btn-entry-label">Add Text</span>
+          </button>
+          <button class="btn btn-add btn-entry" id="add-file-btn" disabled>
+            <span class="btn-entry-icon">📎</span>
+            <span class="btn-entry-label">Add File</span>
+          </button>
         </div>
+      </div>
+
+      <!-- Compression option -->
+      <div class="compress-block">
+        <div class="compress-header">
+          <span class="compress-label">🗜️ Compression</span>
+          <label class="switch compress-switch">
+            <input type="checkbox" id="compression-switch" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="compress-desc">Enable payload compression to save space (Deflate algorithm).</div>
       </div>
 
       <!-- Encryption options -->

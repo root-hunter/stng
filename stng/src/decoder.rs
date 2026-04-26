@@ -88,7 +88,17 @@ impl Decoder {
             payload
         };
 
-        Ok(payload)
+        // Decompressione solo se richiesto
+        if header.compressed {
+            use flate2::read::DeflateDecoder;
+            use std::io::Read;
+            let mut decoder = DeflateDecoder::new(&payload[..]);
+            let mut decompressed = Vec::new();
+            decoder.read_to_end(&mut decompressed)?;
+            Ok(decompressed)
+        } else {
+            Ok(payload)
+        }
     }
 
     // ── Convenience wrappers ──────────────────────────────────────────────────

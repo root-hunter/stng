@@ -1172,6 +1172,7 @@ name = "stng"
 version = "0.1.0"
 dependencies = [
  "aes-gcm",
+ "flate2",
  "image",
  "postcard",
  "serde",
@@ -1184,8 +1185,10 @@ name = "stng-wasm"
 version = "0.1.0"
 dependencies = [
  "base64",
+ "flate2",
  "getrandom 0.2.17",
  "image",
+ "postcard",
  "serde_json",
  "stng",
  "wasm-bindgen",

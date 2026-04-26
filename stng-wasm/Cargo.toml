@@ -1,3 +1,4 @@
+
 [package]
 name = "stng-wasm"
 version = "0.1.0"
@@ -13,3 +14,5 @@ image = "0.25"
 getrandom = { version = "0.2", features = ["js"] }
 serde_json = "1"
 base64 = "0.22"
+flate2 = { version = "1.0", default-features = false, features = ["rust_backend"] }
+postcard = { version = "1.1.3", features = ["alloc"] }

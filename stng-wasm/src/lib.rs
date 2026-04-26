@@ -1,3 +1,68 @@
+#[wasm_bindgen]
+pub fn encode_payload_size(
+    entries_json: &str,
+    encryption: &str,
+    key: &[u8],
+    compress: bool,
+) -> Result<usize, JsValue> {
+    use stng::auth::EncryptionType;
+    use postcard::to_allocvec;
+    use stng::header::Header;
+    use flate2::{write::DeflateEncoder, Compression};
+    use std::io::Write;
+
+    let entries: Vec<serde_json::Value> = serde_json::from_str(entries_json)
+        .map_err(|e| JsValue::from_str(&format!("JSON parse error: {e}")))?;
+
+    let mut data = Data::new();
+    for entry in entries {
+        let name = entry["name"].as_str().unwrap_or("entry").to_string();
+        let typ  = entry["type"].as_str().unwrap_or("text");
+        let val  = entry["value"].as_str().unwrap_or("");
+        match typ {
+            "binary" => {
+                let bytes = B64.decode(val)
+                    .map_err(|e| JsValue::from_str(&format!("Base64 decode error: {e}")))?;
+                data.push(DataElement::binary(name, bytes));
+            }
+            _ => {
+                data.push(DataElement::text(name, val));
+            }
+        }
+    }
+
+    let serialized = to_allocvec(&data)
+        .map_err(|e| JsValue::from_str(&format!("Serialize error: {e}")))?;
+
+    let payload_data = if compress {
+        let mut encoder = DeflateEncoder::new(Vec::new(), Compression::default());
+        encoder.write_all(&serialized).map_err(|e| JsValue::from_str(&e.to_string()))?;
+        encoder.finish().map_err(|e| JsValue::from_str(&e.to_string()))?
+    } else {
+        serialized
+    };
+
+    let encryption_type = match encryption {
+        "xor" => EncryptionType::Xor,
+        "aes256" => EncryptionType::Aes256,
+        _ => EncryptionType::None,
+    };
+    let auth = stng::auth::SecureContext::new(encryption_type);
+    let mut auth_buf = [0u8; 16];
+    let auth_bytes = postcard::to_slice(&auth, &mut auth_buf)
+        .map_err(|e| JsValue::from_str(&format!("Auth serialize error: {e}")))?;
+    let auth_len = auth_bytes.len() as u8;
+
+    let header = Header::new(payload_data.len(), compress);
+    let mut header_buf = [0u8; 16];
+    let header_bytes = postcard::to_slice(&header, &mut header_buf)
+        .map_err(|e| JsValue::from_str(&format!("Header serialize error: {e}")))?;
+    let header_len = header_bytes.len() as u8;
+
+    // Calcola dimensione effettiva (in byte)
+    let total_bytes = 1 + auth_bytes.len() + 1 + header_bytes.len() + payload_data.len();
+    Ok(total_bytes)
+}
 use base64::{engine::general_purpose::STANDARD as B64, Engine as _};
 use stng::auth::EncryptionSecret;
 use stng::data::{Data, DataElement, DataType};
@@ -30,7 +95,7 @@ fn img_to_png_bytes(img: image::DynamicImage) -> Result<Vec<u8>, JsValue> {
 
 #[wasm_bindgen]
 pub fn encode_string(image_bytes: &[u8], message: &str) -> Result<Vec<u8>, JsValue> {
-    encode_string_secure(image_bytes, message, "none", &[])
+    encode_string_secure(image_bytes, message, "none", &[], false)
 }
 
 #[wasm_bindgen]
@@ -39,11 +104,12 @@ pub fn encode_string_secure(
     message: &str,
     encryption: &str,
     key: &[u8],
+    compress: bool,
 ) -> Result<Vec<u8>, JsValue> {
     let mut img =
         image::load_from_memory(image_bytes).map_err(|e| JsValue::from_str(&e.to_string()))?;
     let secret = parse_secret(encryption, key);
-    stng::encoder::Encoder::encode_string(&mut img, message, secret.as_ref())
+    stng::encoder::Encoder::encode_string(&mut img, message, secret.as_ref(), compress)
         .map_err(|e| JsValue::from_str(&e.to_string()))?;
     img_to_png_bytes(img)
 }
@@ -87,6 +153,7 @@ pub fn encode_payload(
     entries_json: &str,
     encryption: &str,
     key: &[u8],
+    compress: bool,
 ) -> Result<Vec<u8>, JsValue> {
     let entries: Vec<serde_json::Value> = serde_json::from_str(entries_json)
         .map_err(|e| JsValue::from_str(&format!("JSON parse error: {e}")))?;
@@ -111,7 +178,7 @@ pub fn encode_payload(
     let mut img =
         image::load_from_memory(image_bytes).map_err(|e| JsValue::from_str(&e.to_string()))?;
     let secret = parse_secret(encryption, key);
-    stng::encoder::Encoder::encode_payload(&mut img, &data, secret.as_ref())
+    stng::encoder::Encoder::encode_payload(&mut img, &data, secret.as_ref(), compress)
         .map_err(|e| JsValue::from_str(&e.to_string()))?;
     img_to_png_bytes(img)
 }
