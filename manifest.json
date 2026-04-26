@@ -5,7 +5,7 @@
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#22223b",
-  "description": "App di steganografia STNG",
+  "description": "STNG - A WebAssembly-based steganography tool for encoding and decoding messages in images.",
   "icons": [
     {
       "src": "images/icon-192.png",

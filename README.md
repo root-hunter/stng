@@ -4,9 +4,12 @@
 
 ---
 
-## 🌐 Live Demo
 
-**[https://root-hunter.github.io/stng/](https://root-hunter.github.io/stng/)**
+## 🌐 Live Demo & Installation
+
+**[Try it now on GitHub Pages](https://root-hunter.github.io/stng/)**
+
+This app is a Progressive Web App (PWA): you can install it on desktop or mobile directly from your browser (look for the “Install app” icon in the address bar or browser menu). The manifest and icons are included.
 
 ---
 
@@ -127,6 +130,47 @@ Each encoded image starts with an 11-pixel header (using RGB channels):
 | `make clean`    | Remove build artifacts                   |
 
 ---
+
+
+
+## 📦 Compression support
+
+stng supports optional compression of the payload before embedding it into the image. This can significantly reduce the size of the hidden message, allowing you to store more data in the same image, especially for text or repetitive data.
+
+- Compression is performed automatically using the DEFLATE algorithm (via the `flate2` crate in Rust).
+- Compression is lossless and fully transparent: the decoder will automatically decompress the payload if it was compressed.
+- You can enable or disable compression from the web interface or via the API.
+
+**When to use compression:**
+
+- Recommended for text, JSON, or other compressible data.
+- For already compressed files (e.g., JPEG, PNG, ZIP), compression may not reduce size and can even increase it slightly.
+
+**Encoding format:**
+
+- The header includes a flag indicating whether compression was used.
+- The decoder checks this flag and decompresses the payload if needed.
+
+---
+
+## 📲 PWA & Manifest
+
+The app includes a `manifest.json` and all required icons for PWA installation. You can install the app directly from your browser. For offline support, you can add a custom service worker (see below for a basic example).
+
+### Example: Adding a Service Worker
+
+1. Create a file `docs/sw.js` with basic caching logic (see [MDN Service Worker guide](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers)).
+2. Register the service worker in `docs/app.js` or in a script tag in `index.html`:
+
+```js
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js');
+  });
+}
+```
+
+This will enable offline access and improve installability.
 
 ## 📄 License
 
