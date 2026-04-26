@@ -1,3 +1,22 @@
+
+/// Create a ZIP archive containing the encoded image. Returns the ZIP as Vec<u8>.
+#[wasm_bindgen]
+pub fn zip_encoded_image(image_bytes: &[u8], filename: &str) -> Result<Vec<u8>, JsValue> {
+    use zip::write::FileOptions;
+    use zip::ZipWriter;
+    use std::io::Write;
+    let mut buf = Vec::new();
+    let mut zip = ZipWriter::new(std::io::Cursor::new(&mut buf));
+    let options = FileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+    zip.start_file(filename, options)
+        .map_err(|e| JsValue::from_str(&format!("ZIP start_file error: {e}")))?;
+    zip.write_all(image_bytes)
+        .map_err(|e| JsValue::from_str(&format!("ZIP write error: {e}")))?;
+    let cursor = zip.finish()
+        .map_err(|e| JsValue::from_str(&format!("ZIP finish error: {e}")))?;
+    let buf = cursor.into_inner();
+    Ok(buf.clone())
+}
 #[wasm_bindgen]
 pub fn encode_payload_size(
     entries_json: &str,

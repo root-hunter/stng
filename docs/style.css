@@ -311,9 +311,14 @@ main {
 }
 .entry-card-header {
   display: flex; align-items: center; gap: .6rem;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 .entry-name-input {
-  flex: 1; background: rgba(255,255,255,0.04);
+  flex: 1 1 0%;
+  min-width: 0;
+  max-width: 100%;
+  background: rgba(255,255,255,0.04);
   border: 1px solid var(--border); border-radius: var(--radius-xs);
   color: var(--text); font-size: .87rem; font-family: var(--font);
   padding: .35rem .7rem; height: 36px;
@@ -746,6 +751,15 @@ textarea:focus {
 
 /* ── Responsive ── */
 @media (max-width: 600px) {
+    .entry-card-header {
+      flex-wrap: wrap;
+      gap: .4rem;
+    }
+    .entry-name-input {
+      min-width: 0;
+      max-width: 100%;
+      font-size: 1rem;
+    }
   .panel { padding: 1.25rem 1rem; gap: 1rem; }
   header { padding: 2rem .5rem 1.5rem; }
   .hero-chips { gap: .35rem; }
