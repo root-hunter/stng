@@ -103,7 +103,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Extracted data length: {}", data_length);
 
     let mut i = 0; // Start after the first 32 bits which represent the data length
-    while i < (data_length as usize * 8) + 32 {
+    while i <= (data_length as usize * 8) + 32 {
         let x = (i / 3) as u32;
         let y = (i / 3) as u32 / width;
 
@@ -115,7 +115,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let pixel = img.get_pixel(x, y);
 
         for j in 0..3 {
-            if i >= (data_length as usize * 8) + 32 {
+            if i > (data_length as usize * 8) + 32 {
                 break;
             }
 
