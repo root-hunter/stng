@@ -39,6 +39,9 @@ jobs:
 
       - name: Remove wasm-pack .gitignore from pkg
         run: rm -f docs/pkg/.gitignore
+      
+      - name: Copy README.md to docs
+        run: cp README.md docs/
 
       - name: Deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v4
