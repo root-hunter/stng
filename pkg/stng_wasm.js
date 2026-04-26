@@ -106,9 +106,10 @@ export function encode_max_capacity(image_bytes) {
  * @param {string} entries_json
  * @param {string} encryption
  * @param {Uint8Array} key
+ * @param {boolean} compress
  * @returns {Uint8Array}
  */
-export function encode_payload(image_bytes, entries_json, encryption, key) {
+export function encode_payload(image_bytes, entries_json, encryption, key, compress) {
     const ptr0 = passArray8ToWasm0(image_bytes, wasm.__wbindgen_malloc);
     const len0 = WASM_VECTOR_LEN;
     const ptr1 = passStringToWasm0(entries_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
@@ -117,13 +118,34 @@ export function encode_payload(image_bytes, entries_json, encryption, key) {
     const len2 = WASM_VECTOR_LEN;
     const ptr3 = passArray8ToWasm0(key, wasm.__wbindgen_malloc);
     const len3 = WASM_VECTOR_LEN;
-    const ret = wasm.encode_payload(ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3);
+    const ret = wasm.encode_payload(ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3, compress);
     if (ret[3]) {
         throw takeFromExternrefTable0(ret[2]);
     }
     var v5 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
     wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
     return v5;
+}
+
+/**
+ * @param {string} entries_json
+ * @param {string} encryption
+ * @param {Uint8Array} key
+ * @param {boolean} compress
+ * @returns {number}
+ */
+export function encode_payload_size(entries_json, encryption, key, compress) {
+    const ptr0 = passStringToWasm0(entries_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ptr1 = passStringToWasm0(encryption, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len1 = WASM_VECTOR_LEN;
+    const ptr2 = passArray8ToWasm0(key, wasm.__wbindgen_malloc);
+    const len2 = WASM_VECTOR_LEN;
+    const ret = wasm.encode_payload_size(ptr0, len0, ptr1, len1, ptr2, len2, compress);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return ret[0] >>> 0;
 }
 
 /**
@@ -150,9 +172,10 @@ export function encode_string(image_bytes, message) {
  * @param {string} message
  * @param {string} encryption
  * @param {Uint8Array} key
+ * @param {boolean} compress
  * @returns {Uint8Array}
  */
-export function encode_string_secure(image_bytes, message, encryption, key) {
+export function encode_string_secure(image_bytes, message, encryption, key, compress) {
     const ptr0 = passArray8ToWasm0(image_bytes, wasm.__wbindgen_malloc);
     const len0 = WASM_VECTOR_LEN;
     const ptr1 = passStringToWasm0(message, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
@@ -161,7 +184,7 @@ export function encode_string_secure(image_bytes, message, encryption, key) {
     const len2 = WASM_VECTOR_LEN;
     const ptr3 = passArray8ToWasm0(key, wasm.__wbindgen_malloc);
     const len3 = WASM_VECTOR_LEN;
-    const ret = wasm.encode_string_secure(ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3);
+    const ret = wasm.encode_string_secure(ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3, compress);
     if (ret[3]) {
         throw takeFromExternrefTable0(ret[2]);
     }

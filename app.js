@@ -2,7 +2,7 @@
 // Esegui: wasm-pack build stng-wasm --target web --out-dir ../docs/pkg
 import init, {
   encode_payload, decode_payload,
-  encode_max_capacity,
+  encode_max_capacity, encode_payload_size,
 } from "./pkg/stng_wasm.js";
 
 // ── Utility ──────────────────────────────────────────────────────────────────
@@ -170,19 +170,32 @@ let maxCapacity = 0;
 let entries     = [];   // { id, type, name, value: string (text) | File (binary) }
 let nextEntryId = 0;
 
-function totalPayloadSize() {
-  let n = 0;
+
+async function totalPayloadSize() {
+  // Prepara il JSON come per encode_payload
+  const payload = [];
   for (const e of entries) {
-    n += new TextEncoder().encode(e.name).length + 4; // rough overhead per entry
-    if (e.type === "text") n += new TextEncoder().encode(e.value ?? "").length;
-    else if (e.value instanceof File) n += e.value.size;
+    if (e.type === "text") {
+      payload.push({ name: e.name || "text", type: "text", value: e.value ?? "" });
+    } else if (e.type === "binary" && e.value instanceof File) {
+      const bytes = await fileToBytes(e.value);
+      payload.push({ name: e.name || e.value.name, type: "binary", value: bytesToBase64(bytes) });
+    }
   }
-  return n;
+  if (payload.length === 0) return 0;
+  const encryption = encodeEncrypt.getEncryption();
+  const keyBytes   = encodeEncrypt.getKeyBytes();
+  const compress   = document.getElementById("compression-switch").checked;
+  try {
+    return encode_payload_size(JSON.stringify(payload), encryption, keyBytes, compress);
+  } catch {
+    return 0;
+  }
 }
 
-function updateCapacityBar() {
+async function updateCapacityBar() {
   if (!maxCapacity) return;
-  const used = totalPayloadSize();
+  const used = await totalPayloadSize();
   const pct  = Math.min(used / maxCapacity * 100, 100);
   const free = Math.max(maxCapacity - used, 0);
   capacityFill.style.width = pct + "%";
@@ -230,6 +243,7 @@ function addTextEntry() {
   nameInput.addEventListener("input", () => {
     const e = entries.find(e => e.id === id);
     if (e) e.name = nameInput.value;
+    updateCapacityBar();
   });
   textarea.addEventListener("input", () => {
     const e = entries.find(e => e.id === id);
@@ -270,6 +284,7 @@ function addFileEntry() {
   nameInput.addEventListener("input", () => {
     const e = entries.find(e => e.id === id);
     if (e) e.name = nameInput.value;
+    updateCapacityBar();
   });
   fileInput.addEventListener("change", () => {
     const file = fileInput.files[0];
@@ -332,12 +347,16 @@ setupDropzone("encode-dropzone", "encode-image", "encode-preview", async (file) 
     maxCapacity = encode_max_capacity(bytes);
     capacityText.textContent = formatBytes(maxCapacity);
     capacityBar.hidden = false;
-    updateCapacityBar();
+    await updateCapacityBar();
   } catch { /* ignore */ }
   updateEncodeBtn();
 });
 
 encodeResetBtn.addEventListener("click", () => resetEncodeForm(true));
+
+// Aggiorna la barra capacità anche quando cambia compressione o encryption
+document.getElementById("compression-switch").addEventListener("change", updateCapacityBar);
+document.querySelectorAll(".etab").forEach(btn => btn.addEventListener("click", () => setTimeout(updateCapacityBar, 10)));
 
 // ── Encode — submit ───────────────────────────────────────────────────────────
 
@@ -362,13 +381,14 @@ encodeBtn.addEventListener("click", async () => {
     const imageBytes = await fileToBytes(encodeFile);
     const enc        = encodeEncrypt.getEncryption();
     const key        = encodeEncrypt.getKeyBytes();
-    const result     = encode_payload(imageBytes, JSON.stringify(payload), enc, key);
+    const compress   = document.getElementById("compression-switch").checked;
+    const result     = encode_payload(imageBytes, JSON.stringify(payload), enc, key, compress);
     const url        = bytesToObjectURL(result);
 
     encodeDownload.href = url;
     await drawOnCanvas(encodeOutputCanvas, url);
     encodeResult.hidden = false;
-    showSuccess(`${payload.length} ${payload.length === 1 ? "entry" : "entries"} hidden in the image!`);
+    showSuccess(`${payload.length} ${payload.length === 1 ? "entry" : "entries"} hidden in the image!` + (compress ? " (compressed)" : " (no compression)"));
   } catch (err) {
     showError(err?.toString() ?? "Unknown error");
   } finally {
