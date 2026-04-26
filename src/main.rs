@@ -20,18 +20,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let data_length_bytes = data_length.to_be_bytes();
 
-    let mut data_length_binary = data_length_bytes.iter()
+    let mut data_binary = data_length_bytes.iter()
         .map(|byte| format!("{:08b}", byte))
         .collect::<Vec<String>>()
         .join("");
 
     println!("Data length in bytes: {}", data_length);
-    println!("Data length in binary: {}", data_length_binary);
+    println!("Data length in binary: {}", data_binary);
 
-    let mut data_binary = data_bytes.iter()
+    data_binary.push_str(&data_bytes.iter()
         .map(|byte| format!("{:08b}", byte))
         .collect::<Vec<String>>()
-        .join("");
+        .join(""));
     
     let width = img.width();
     let height = img.height();
@@ -43,16 +43,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut x = 0;
     let mut y = 0;
 
-    while x < width && y < height && !data_length_binary.is_empty() {
+    while x < width && y < height && !data_binary.is_empty() {
         let pixel = img.get_pixel(x, y);
         let mut r = pixel[0];
         let mut g = pixel[1];
         let mut b = pixel[2];
         let a = pixel[3];
 
-        if !data_length_binary.is_empty() {
+        if !data_binary.is_empty() {
             // Embed the data bit into the least significant bit of the color channels
-            let bit = data_length_binary.chars().next().unwrap().to_digit(2).unwrap() as u8;
+            let bit = data_binary.chars().next().unwrap().to_digit(2).unwrap() as u8;
 
             if bit == 0 {
                 r = (r & 0xFE) | 0;
@@ -60,10 +60,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 r = (r & 0xFE) | 1;
             }
 
-            data_length_binary.remove(0);
+            data_binary.remove(0);
         }
-        if !data_length_binary.is_empty() {
-            let bit = data_length_binary.chars().next().unwrap().to_digit(2).unwrap() as u8;
+        if !data_binary.is_empty() {
+            let bit = data_binary.chars().next().unwrap().to_digit(2).unwrap() as u8;
             
             if bit == 0 {
                 g = (g & 0xFE) | 0;
@@ -71,10 +71,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 g = (g & 0xFE) | 1;
             }
             
-            data_length_binary.remove(0);
+            data_binary.remove(0);
         }
-        if !data_length_binary.is_empty() {
-            let bit = data_length_binary.chars().next().unwrap().to_digit(2).unwrap() as u8;
+        if !data_binary.is_empty() {
+            let bit = data_binary.chars().next().unwrap().to_digit(2).unwrap() as u8;
             
             if bit == 0 {
                 b = (b & 0xFE) | 0;
@@ -82,7 +82,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 b = (b & 0xFE) | 1;
             }
             
-            data_length_binary.remove(0);
+            data_binary.remove(0);
         }
 
         img.put_pixel(x, y, image::Rgba([r, g, b, a]));
@@ -127,13 +127,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let x = (i / 3) as u32;
         let y = (i / 3) as u32 / width;
 
+
         let pixel = img.get_pixel(x, y);
 
         for j in 0..3 {
             if i >= (data_length as usize * 8) {
                 break;
             }
-            println!("Extracting bit {}: pixel coordinates ({}, {})", i, x, y);
 
             let bit = pixel[j] & 1;
             extracted_data_binary.push_str(&format!("{}", bit));
