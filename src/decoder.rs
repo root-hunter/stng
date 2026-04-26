@@ -12,7 +12,7 @@ pub fn decode(img: &DynamicImage) -> Result<Vec<u8>, Box<dyn std::error::Error>>
         let pixel_index = data_length_binary.len() / 3;
         let x = (pixel_index % width as usize) as u32;
         let y = (pixel_index / width as usize) as u32;
-        
+
         let pixel = img.get_pixel(x, y);
 
         for j in 0..3 {
