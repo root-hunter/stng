@@ -35,7 +35,7 @@ mod tests {
 
         Encoder::encode_string(&mut img, data, None).unwrap();
 
-        let extracted_data = Decoder::decode_string(&img).unwrap();
+        let extracted_data = Decoder::decode_string(&img, None).unwrap();
         assert_eq!(data, extracted_data);
     }
 
@@ -49,7 +49,7 @@ mod tests {
 
         Encoder::encode_string(&mut img, data, None).unwrap();
 
-        let extracted_data = Decoder::decode_string(&img).unwrap();
+        let extracted_data = Decoder::decode_string(&img, None).unwrap();
         assert_eq!(data, extracted_data);
     }
 
@@ -63,7 +63,7 @@ mod tests {
 
         Encoder::encode_string(&mut img, data, None).unwrap();
 
-        let extracted_data = Decoder::decode_string(&img).unwrap();
+        let extracted_data = Decoder::decode_string(&img, None).unwrap();
         assert_eq!(data, extracted_data);
     }
 
@@ -76,7 +76,7 @@ mod tests {
         let data = "Ciao a tutti mi chiaddsa dsasd asd as dsa dsa adsa asdd d samo Antonio!!!! こんにちは世界";
 
         Encoder::encode_string(&mut img, data, None).unwrap();
-        let extracted_data = Decoder::decode_string(&img).unwrap();
+        let extracted_data = Decoder::decode_string(&img, None).unwrap();
         assert_eq!(data, extracted_data);
     }
 
@@ -89,7 +89,7 @@ mod tests {
         let file_path = asset("texts/commedia.txt");
         let file_path_str = file_path.to_str().unwrap();
         Encoder::encode_file(&mut img, file_path_str, None).unwrap();
-        let extracted_data = Decoder::decode_string(&img).unwrap();
+        let extracted_data = Decoder::decode_string(&img, None).unwrap();
         let expected_data = std::fs::read_to_string(file_path_str).unwrap();
         assert_eq!(expected_data, extracted_data);
     }
@@ -102,7 +102,7 @@ mod tests {
             .unwrap();
         let data = vec![0, 255, 128, 64, 32, 16, 8, 4, 2, 1];
         Encoder::encode_bytes(&mut img, &data, None).unwrap();
-        let extracted_data = Decoder::decode_bytes(&img).unwrap();
+        let extracted_data = Decoder::decode_bytes(&img, None).unwrap();
         assert_eq!(data, extracted_data);
     }
 
@@ -114,7 +114,22 @@ mod tests {
             .unwrap();
         let data = crate::MAGIC.to_vec();
         Encoder::encode_bytes(&mut img, &data, None).unwrap();
-        let extracted_data = Decoder::decode_bytes(&img).unwrap();
+        let extracted_data = Decoder::decode_bytes(&img, None).unwrap();
+        assert_eq!(data, extracted_data);
+    }
+
+    #[test]
+    fn test_aes_encryption() {
+        use crate::auth::{EncryptionSecret, EncryptionType, SecureContext};
+
+        let mut img = ImageReader::open(asset("images/dyno.png"))
+            .unwrap()
+            .decode()
+            .unwrap();
+        let data = "This is a secret message that will be encrypted using AES-256.";
+        let secret = EncryptionSecret::Aes256(vec![0; 32]); // Chiave fittizia per il test
+        Encoder::encode_string(&mut img, data, Some(&secret)).unwrap();
+        let extracted_data = Decoder::decode_string(&img, Some(&secret)).unwrap();
         assert_eq!(data, extracted_data);
     }
 }

@@ -13,11 +13,11 @@ impl Encoder {
         let auth = SecureContext::new(match secret {
             Some(EncryptionSecret::Xor(_)) => EncryptionType::Xor,
             Some(EncryptionSecret::Aes256(_)) => EncryptionType::Aes256,
-            None => EncryptionType::None,
+            _ => EncryptionType::None,
         });
 
         if secret.is_some() && !matches!(auth.encryption_type, EncryptionType::None) {
-            data = auth.encrypt(&data, secret.unwrap());
+            data = auth.encrypt(&data, secret.unwrap())?;
         }
         
         let (width, height) = (img.width(), img.height());
@@ -25,6 +25,7 @@ impl Encoder {
 
         let mut auth_buf = [0u8; 16];
         let auth_bytes = to_slice(&auth, &mut auth_buf).unwrap();
+
         let auth_len = auth_bytes.len() as u8;
 
         let header = Header::new(data.len());

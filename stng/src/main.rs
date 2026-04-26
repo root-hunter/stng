@@ -33,7 +33,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let img2 = ImageReader::open("images/encoded_image.png")?.decode()?;
 
     let output_path = "texts/output.txt";
-    Decoder::decode_file(&img2, output_path)?;
+    Decoder::decode_file(&img2, output_path, None)?;
 
     Ok(())
 }

@@ -1,13 +1,13 @@
 use image::DynamicImage;
 use postcard::from_bytes;
 
-use crate::auth::SecureContext;
+use crate::auth::{EncryptionSecret, EncryptionType, SecureContext};
 use crate::header::Header;
 
 pub struct Decoder;
 
 impl Decoder {
-    pub fn decode(img: &DynamicImage) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    pub fn decode(img: &DynamicImage, secret: Option<&EncryptionSecret>) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         let channels = match img {
             DynamicImage::ImageRgb8(buf) => buf
                 .pixels()
@@ -43,7 +43,7 @@ impl Decoder {
             auth_bytes.push(read_byte!());
         }
 
-        let _auth: SecureContext = from_bytes(&auth_bytes)?;
+        let auth: SecureContext = from_bytes(&auth_bytes)?;
 
         // Leggi 1 byte = lunghezza dell'header serializzato
         let header_len = read_byte!() as usize;
@@ -75,26 +75,33 @@ impl Decoder {
             }
         }
 
+        // Applica decifratura se necessario
+        let out = if !matches!(auth.encryption_type, EncryptionType::None) {
+            let s = secret.ok_or("Secret required for decryption")?;
+            auth.decrypt(&out, s)?
+        } else {
+            out
+        };
+
         Ok(out)
     }
 
-    pub fn decode_string(img: &DynamicImage) -> Result<String, Box<dyn std::error::Error>> {
-        let extracted_data_bytes = Decoder::decode(img)?;
-        let extracted_data = String::from_utf8(extracted_data_bytes)?;
-        Ok(extracted_data)
+    pub fn decode_string(img: &DynamicImage, secret: Option<&EncryptionSecret>) -> Result<String, Box<dyn std::error::Error>> {
+        let bytes = Decoder::decode(img, secret)?;
+        Ok(String::from_utf8(bytes)?)
     }
 
     pub fn decode_file(
         img: &DynamicImage,
         output_path: &str,
+        secret: Option<&EncryptionSecret>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let extracted_data_bytes = Decoder::decode(img)?;
-        std::fs::write(output_path, extracted_data_bytes)?;
-
+        let bytes = Decoder::decode(img, secret)?;
+        std::fs::write(output_path, bytes)?;
         Ok(())
     }
 
-    pub fn decode_bytes(img: &DynamicImage) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-        Decoder::decode(img)
+    pub fn decode_bytes(img: &DynamicImage, secret: Option<&EncryptionSecret>) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+        Decoder::decode(img, secret)
     }
 }

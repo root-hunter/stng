@@ -12,6 +12,7 @@ name = "stng"
 path = "src/lib.rs"
 
 [dependencies]
+aes-gcm = "0.10.3"
 image = "0.25.10"
 postcard = "1.1.3"
 serde = "1.0.228"

@@ -28,5 +28,5 @@ pub fn decode_string(image_bytes: &[u8]) -> Result<String, JsValue> {
     let img =
         image::load_from_memory(image_bytes).map_err(|e| JsValue::from_str(&e.to_string()))?;
 
-    stng::decoder::Decoder::decode_string(&img).map_err(|e| JsValue::from_str(&e.to_string()))
+    stng::decoder::Decoder::decode_string(&img, None).map_err(|e| JsValue::from_str(&e.to_string()))
 }
