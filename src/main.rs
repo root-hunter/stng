@@ -1,9 +1,11 @@
 use image::{GenericImage, GenericImageView, ImageReader};
 
+pub const HEADER_SIZE: usize = 32; // 32 bits to store the length of the data
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut img = ImageReader::open("images/stego.jpg")?.decode()?;
 
-    let data = "This is a secret message hidden in the image!";
+    let data = "Hello my name is tony!";
     let data_bytes = data.as_bytes();
     let data_length = data_bytes.len() as u32;
 
@@ -61,7 +63,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     _ => unreachable!(),
                 }
             }
-            if x * 3 + j != 32 {
+            if HEADER_SIZE % 2 != 1 && x * 3 + j != HEADER_SIZE as u32 {
                 data_binary.remove(0);
             }
         }
@@ -83,11 +85,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Read data length from the first 32 bits
     let mut data_length_binary = String::new();
-    while data_length_binary.len() < 32 {
+    while data_length_binary.len() < HEADER_SIZE {
         let pixel = img.get_pixel((data_length_binary.len() / 3) as u32, (data_length_binary.len() / 3 / width as usize) as u32);
 
         for j in 0..3 {
-            if data_length_binary.len() >= 32 {
+            if data_length_binary.len() >= HEADER_SIZE {
                 break;
             }
 
@@ -103,7 +105,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Extracted data length: {}", data_length);
 
     let mut i = 0; // Start after the first 32 bits which represent the data length
-    while i <= (data_length as usize * 8) + 32 {
+    while i <= (data_length as usize * 8) + HEADER_SIZE {
         let x = (i / 3) as u32;
         let y = (i / 3) as u32 / width;
 
@@ -115,7 +117,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let pixel = img.get_pixel(x, y);
 
         for j in 0..3 {
-            if i > (data_length as usize * 8) + 32 {
+            if i > (data_length as usize * 8) + HEADER_SIZE {
                 break;
             }
 
@@ -128,6 +130,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("extracted_data_binary length: {}", extracted_data_binary.len());
     println!("Extracted binary data: {}", extracted_data_binary);
+
     let extracted_data_bytes = extracted_data_binary
         .as_bytes()
         .chunks(8)
