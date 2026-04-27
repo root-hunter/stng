@@ -35,7 +35,7 @@ jobs:
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
       - name: Build WASM
-        run: wasm-pack build stng-wasm --target web --out-dir ../docs/pkg
+        run: wasm-pack build stgn-wasm --target web --out-dir ../docs/pkg
 
       - name: Remove wasm-pack .gitignore from pkg
         run: rm -f docs/pkg/.gitignore

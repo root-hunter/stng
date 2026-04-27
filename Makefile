@@ -1,4 +1,4 @@
-.PHONY: all build build-release check test test-verbose test-stng test-wasm \
+.PHONY: all build build-release check test test-verbose test-stgn test-wasm \
         run clean fmt lint doc wasm install-wasm-target help
 
 # ── Variabili ──────────────────────────────────────────────────────────────────
@@ -33,27 +33,27 @@ test:
 test-verbose:
 	$(CARGO) test -- --nocapture
 
-## Esegui solo i test del crate stng
-test-stng:
-	$(CARGO) test -p stng
+## Esegui solo i test del crate stgn
+test-stgn:
+	$(CARGO) test -p stgn
 
-## Esegui solo i test del crate stng-wasm
+## Esegui solo i test del crate stgn-wasm
 test-wasm:
-	$(CARGO) test -p stng-wasm
+	$(CARGO) test -p stgn-wasm
 
 ## Esegui un singolo test per nome (es: make test-one NAME=test_steganography)
 test-one:
-	$(CARGO) test -p stng $(NAME) -- --nocapture
+	$(CARGO) test -p stgn $(NAME) -- --nocapture
 
 # ── Run ────────────────────────────────────────────────────────────────────────
 
 ## Lancia il binario CLI (es: make run ARGS="encode -i img.png -m 'hello'")
 run:
-	$(CARGO) run -p stng -- $(ARGS)
+	$(CARGO) run -p stgn -- $(ARGS)
 
 ## Lancia in modalità release
 run-release:
-	$(CARGO) run -p stng --release -- $(ARGS)
+	$(CARGO) run -p stgn --release -- $(ARGS)
 
 # ── Qualità del codice ─────────────────────────────────────────────────────────
 
@@ -81,13 +81,14 @@ doc:
 install-wasm-target:
 	rustup target add $(WASM_TARGET)
 
-## Compila stng-wasm per WebAssembly
+## Compila stgn-wasm per WebAssembly
 wasm:
-	$(CARGO) build -p stng-wasm --target $(WASM_TARGET) --release
+	$(CARGO) build -p stgn-wasm --target $(WASM_TARGET) --release
 
 ## Genera i binding JS con wasm-pack e li mette in docs/pkg (pronti per il demo)
 wasm-pack:
-	$(WASM_PACK) build stng-wasm --target web --out-dir ../docs/pkg
+	rm -f docs/pkg/*
+	$(WASM_PACK) build stgn-wasm --target web --out-dir ../docs/pkg
 
 ## Avvia un server HTTP locale sulla cartella docs/ (richiede python3)
 serve-docs:

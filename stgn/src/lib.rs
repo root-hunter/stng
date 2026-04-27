@@ -5,7 +5,7 @@ pub mod encoder;
 pub mod header;
 pub mod utils;
 
-pub const MAGIC: &[u8; 4] = b"STNG";
+pub const MAGIC: &[u8; 4] = b"STGN";
 
 mod tests {
 

@@ -1,14 +1,14 @@
 [package]
-name = "stng"
+name = "stgn"
 version = "0.1.0"
 edition = "2024"
 
 [[bin]]
-name = "stng"
+name = "stgn"
 path = "src/main.rs"
 
 [lib]
-name = "stng"
+name = "stgn"
 path = "src/lib.rs"
 
 [dependencies]

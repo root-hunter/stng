@@ -1,5 +1,5 @@
 use image::ImageReader;
-use stng::{
+use stgn::{
     decoder::Decoder,
     encoder::Encoder,
     utils::{bytes_to_human, init_logging},

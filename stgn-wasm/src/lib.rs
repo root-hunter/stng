@@ -24,9 +24,9 @@ pub fn encode_payload_size(
     key: &[u8],
     compress: bool,
 ) -> Result<usize, JsValue> {
-    use stng::auth::EncryptionType;
+    use stgn::auth::EncryptionType;
     use postcard::to_allocvec;
-    use stng::header::Header;
+    use stgn::header::Header;
     use flate2::{write::DeflateEncoder, Compression};
     use std::io::Write;
 
@@ -66,7 +66,7 @@ pub fn encode_payload_size(
         "aes256" => EncryptionType::Aes256,
         _ => EncryptionType::None,
     };
-    let auth = stng::auth::SecureContext::new(encryption_type);
+    let auth = SecureContext::new(encryption_type);
     let mut auth_buf = [0u8; 16];
     let auth_bytes = postcard::to_slice(&auth, &mut auth_buf)
         .map_err(|e| JsValue::from_str(&format!("Auth serialize error: {e}")))?;
@@ -83,8 +83,11 @@ pub fn encode_payload_size(
     Ok(total_bytes)
 }
 use base64::{engine::general_purpose::STANDARD as B64, Engine as _};
-use stng::auth::EncryptionSecret;
-use stng::data::{Data, DataElement, DataType};
+use stgn::auth::SecureContext;
+use stgn::decoder::Decoder;
+use stgn::encoder::Encoder;
+use stgn::auth::EncryptionSecret;
+use stgn::data::{Data, DataElement, DataType};
 use wasm_bindgen::prelude::*;
 
 fn parse_secret(encryption: &str, key: &[u8]) -> Option<EncryptionSecret> {
@@ -128,7 +131,7 @@ pub fn encode_string_secure(
     let mut img =
         image::load_from_memory(image_bytes).map_err(|e| JsValue::from_str(&e.to_string()))?;
     let secret = parse_secret(encryption, key);
-    stng::encoder::Encoder::encode_string(&mut img, message, secret.as_ref(), compress)
+    Encoder::encode_string(&mut img, message, secret.as_ref(), compress)
         .map_err(|e| JsValue::from_str(&e.to_string()))?;
     img_to_png_bytes(img)
 }
@@ -137,7 +140,7 @@ pub fn encode_string_secure(
 pub fn encode_max_capacity(image_bytes: &[u8]) -> Result<usize, JsValue> {
     let img =
         image::load_from_memory(image_bytes).map_err(|e| JsValue::from_str(&e.to_string()))?;
-    Ok(stng::encoder::Encoder::max_capacity(&img))
+    Ok(Encoder::max_capacity(&img))
 }
 
 #[wasm_bindgen]
@@ -154,7 +157,7 @@ pub fn decode_string_secure(
     let img =
         image::load_from_memory(image_bytes).map_err(|e| JsValue::from_str(&e.to_string()))?;
     let secret = parse_secret(encryption, key);
-    stng::decoder::Decoder::decode_string(&img, secret.as_ref())
+    Decoder::decode_string(&img, secret.as_ref())
         .map_err(|e| JsValue::from_str(&e.to_string()))
 }
 
@@ -197,7 +200,7 @@ pub fn encode_payload(
     let mut img =
         image::load_from_memory(image_bytes).map_err(|e| JsValue::from_str(&e.to_string()))?;
     let secret = parse_secret(encryption, key);
-    stng::encoder::Encoder::encode_payload(&mut img, &data, secret.as_ref(), compress)
+    Encoder::encode_payload(&mut img, &data, secret.as_ref(), compress)
         .map_err(|e| JsValue::from_str(&e.to_string()))?;
     img_to_png_bytes(img)
 }
@@ -211,7 +214,7 @@ pub fn decode_payload(
     let img =
         image::load_from_memory(image_bytes).map_err(|e| JsValue::from_str(&e.to_string()))?;
     let secret = parse_secret(encryption, key);
-    let data = stng::decoder::Decoder::decode_payload(&img, secret.as_ref())
+    let data = Decoder::decode_payload(&img, secret.as_ref())
         .map_err(|e| JsValue::from_str(&e.to_string()))?;
 
     let mut arr = Vec::new();

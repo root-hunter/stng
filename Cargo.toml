@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "stng",
-    "stng-wasm",
+    "stgn",
+    "stgn-wasm",
 ]
 resolver = "2"

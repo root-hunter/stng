@@ -1,6 +1,6 @@
 
 [package]
-name = "stng-wasm"
+name = "stgn-wasm"
 version = "0.1.0"
 edition = "2024"
 
@@ -8,7 +8,7 @@ edition = "2024"
 crate-type = ["cdylib"]
 
 [dependencies]
-stng = { path = "../stng" }
+stgn = { path = "../stgn" }
 wasm-bindgen = "0.2"
 image = "0.25"
 getrandom = { version = "0.2", features = ["js"] }
