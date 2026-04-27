@@ -30,7 +30,7 @@ document.getElementById("decode-download-json").addEventListener("click", () => 
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `stng_decoded_${suffix}.json`;
+  a.download = `stgn_decoded_${suffix}.json`;
   document.body.appendChild(a);
   a.click();
   setTimeout(() => {
@@ -39,12 +39,12 @@ document.getElementById("decode-download-json").addEventListener("click", () => 
   }, 100);
 });
 // I file WASM generati da wasm-pack vengono messi in pkg/
-// Esegui: wasm-pack build stng-wasm --target web --out-dir ../docs/pkg
+// Esegui: wasm-pack build stgn-wasm --target web --out-dir ../docs/pkg
 import init, {
   encode_payload, decode_payload,
   encode_max_capacity, encode_payload_size,
   zip_encoded_image,
-} from "./pkg/stng_wasm.js";
+} from "./pkg/stgn_wasm.js";
 // ── Download as ZIP (WASM, no external deps) ──
 document.getElementById("encode-download-zip").addEventListener("click", async () => {
   try {
@@ -56,12 +56,12 @@ document.getElementById("encode-download-zip").addEventListener("click", async (
     const imgBlob = await response.blob();
     const imgBytes = new Uint8Array(await imgBlob.arrayBuffer());
     // Crea ZIP via WASM
-    const zipBytes = zip_encoded_image(imgBytes, `stng_encoded_${suffix}.png`);
+    const zipBytes = zip_encoded_image(imgBytes, `stgn_encoded_${suffix}.png`);
     const zipBlob = new Blob([zipBytes], { type: "application/zip" });
     const zipUrl = URL.createObjectURL(zipBlob);
     const a = document.createElement("a");
     a.href = zipUrl;
-    a.download = `stng_encoded_${suffix}.zip`;
+    a.download = `stgn_encoded_${suffix}.zip`;
     document.body.appendChild(a);
     a.click();
     setTimeout(() => {
@@ -451,7 +451,7 @@ encodeBtn.addEventListener("click", async () => {
 
     const suffix = getDateSuffix();
     encodeDownload.href = url;
-    encodeDownload.download = `stng_encoded_${suffix}.png`;
+    encodeDownload.download = `stgn_encoded_${suffix}.png`;
     await drawOnCanvas(encodeOutputCanvas, url);
     encodeResult.hidden = false;
     showSuccess(`${payload.length} ${payload.length === 1 ? "entry" : "entries"} hidden in the image!` + (compress ? " (compressed)" : " (no compression)"));

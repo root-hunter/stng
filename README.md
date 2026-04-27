@@ -1,13 +1,13 @@
-# stng — LSB Steganography in Rust + WebAssembly
+# stgn — LSB Steganography in Rust + WebAssembly
 
-**stng** is a steganography tool that hides secret messages inside the pixels of PNG/JPG images using the **Least Significant Bit (LSB)** technique. It is written entirely in Rust and compiled to WebAssembly for in-browser use — **no server, no uploads, zero data leaves your device**.
+**stgn** is a steganography tool that hides secret messages inside the pixels of PNG/JPG images using the **Least Significant Bit (LSB)** technique. It is written entirely in Rust and compiled to WebAssembly for in-browser use — **no server, no uploads, zero data leaves your device**.
 
 ---
 
 
 ## 🌐 Live Demo & Installation
 
-**[Try it now on GitHub Pages](https://root-hunter.github.io/stng/)**
+**[Try it now on GitHub Pages](https://root-hunter.github.io/stgn/)**
 
 This app is a Progressive Web App (PWA): you can install it on desktop or mobile directly from your browser (look for the “Install app” icon in the address bar or browser menu). The manifest and icons are included.
 
@@ -20,7 +20,7 @@ This app is a Progressive Web App (PWA): you can install it on desktop or mobile
   - `None` — plain embedding
   - `XOR` — fast symmetric cipher with a passphrase
   - `AES-256` — strong encryption with a 256-bit key
-- 📦 **Magic bytes header** — encoded images carry a `STNG` signature for reliable detection
+- 📦 **Magic bytes header** — encoded images carry a `STGN` signature for reliable detection
 - ⚡ **WebAssembly** — the entire encode/decode pipeline runs client-side in the browser via WASM
 - 🦀 **Pure Rust** — core library with no unsafe code, compiled to both native binary and WASM
 - 📏 **Capacity detection** — reports how many bytes an image can store before encoding
@@ -30,15 +30,15 @@ This app is a Progressive Web App (PWA): you can install it on desktop or mobile
 ## 🗂️ Project Structure
 
 ```
-stng/
-├── stng/               # Core Rust library (encoder, decoder, auth, header)
+stgn/
+├── stgn/               # Core Rust library (encoder, decoder, auth, header)
 │   └── src/
 │       ├── encoder.rs  # LSB encoding logic
 │       ├── decoder.rs  # LSB decoding logic
 │       ├── auth.rs     # Encryption (XOR, AES-256)
-│       ├── header.rs   # STNG magic header format
+│       ├── header.rs   # STGN magic header format
 │       └── lib.rs
-├── stng-wasm/          # wasm-bindgen wrapper exposing the library to JS
+├── stgn-wasm/          # wasm-bindgen wrapper exposing the library to JS
 │   └── src/lib.rs
 ├── docs/               # Static web app (HTML + CSS + JS + compiled WASM pkg)
 │   ├── index.html
@@ -70,7 +70,7 @@ curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 ```bash
 make wasm-pack
 # or manually:
-wasm-pack build stng-wasm --target web --out-dir ../docs/pkg
+wasm-pack build stgn-wasm --target web --out-dir ../docs/pkg
 ```
 
 ### Serve the web app locally
@@ -87,7 +87,7 @@ Then open [http://localhost:8080](http://localhost:8080).
 ```bash
 make test
 # or:
-cargo test --package stng
+cargo test --package stgn
 ```
 
 ---
@@ -110,7 +110,7 @@ Each encoded image starts with an 11-pixel header (using RGB channels):
 
 | Field        | Size    | Description                        |
 |--------------|---------|------------------------------------|
-| Magic        | 4 bytes | `STNG` identifier                  |
+| Magic        | 4 bytes | `STGN` identifier                  |
 | Encryption   | 1 byte  | Encryption type flag               |
 | Payload size | 4 bytes | `u32` length of the encoded data   |
 | Reserved     | 2 bytes | Future use                         |
@@ -135,7 +135,7 @@ Each encoded image starts with an 11-pixel header (using RGB channels):
 
 ## 📦 Compression support
 
-stng supports optional compression of the payload before embedding it into the image. This can significantly reduce the size of the hidden message, allowing you to store more data in the same image, especially for text or repetitive data.
+stgn supports optional compression of the payload before embedding it into the image. This can significantly reduce the size of the hidden message, allowing you to store more data in the same image, especially for text or repetitive data.
 
 - Compression is performed automatically using the DEFLATE algorithm (via the `flate2` crate in Rust).
 - Compression is lossless and fully transparent: the decoder will automatically decompress the payload if it was compressed.
