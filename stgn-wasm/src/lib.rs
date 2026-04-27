@@ -24,9 +24,9 @@ pub fn encode_payload_size(
     key: &[u8],
     compress: bool,
 ) -> Result<usize, JsValue> {
-    use stgn::auth::EncryptionType;
+    use stgn::core::auth::EncryptionType;
     use postcard::to_allocvec;
-    use stgn::header::Header;
+    use stgn::core::header::Header;
     use flate2::{write::DeflateEncoder, Compression};
     use std::io::Write;
 
@@ -83,11 +83,11 @@ pub fn encode_payload_size(
     Ok(total_bytes)
 }
 use base64::{engine::general_purpose::STANDARD as B64, Engine as _};
-use stgn::auth::SecureContext;
-use stgn::decoder::Decoder;
-use stgn::encoder::Encoder;
-use stgn::auth::EncryptionSecret;
-use stgn::data::{Data, DataElement, DataType};
+use stgn::core::auth::SecureContext;
+use stgn::core::decoder::Decoder;
+use stgn::core::encoder::Encoder;
+use stgn::core::auth::EncryptionSecret;
+use stgn::core::data::{Data, DataElement, DataType};
 use wasm_bindgen::prelude::*;
 
 fn parse_secret(encryption: &str, key: &[u8]) -> Option<EncryptionSecret> {

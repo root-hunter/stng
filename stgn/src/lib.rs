@@ -1,8 +1,4 @@
-pub mod auth;
-pub mod data;
-pub mod decoder;
-pub mod encoder;
-pub mod header;
+pub mod core;
 pub mod utils;
 
 pub const MAGIC: &[u8; 4] = b"STGN";
@@ -22,9 +18,9 @@ mod tests {
         assert_eq!(data, extracted_data);
     }
     #[cfg(test)]
-    use super::decoder::Decoder;
+    use super::core::decoder::Decoder;
     #[cfg(test)]
-    use super::encoder::Encoder;
+    use super::core::encoder::Encoder;
     #[cfg(test)]
     use image::ImageReader;
     #[cfg(test)]
@@ -134,7 +130,7 @@ mod tests {
 
     #[test]
     fn test_aes_encryption() {
-        use crate::auth::EncryptionSecret;
+        use crate::core::auth::EncryptionSecret;
 
         let mut img = ImageReader::open(asset("images/dyno.png"))
             .unwrap()
@@ -149,7 +145,7 @@ mod tests {
 
     #[test]
     fn test_xor_encryption() {
-        use crate::auth::EncryptionSecret;
+        use crate::core::auth::EncryptionSecret;
 
         let mut img = ImageReader::open(asset("images/dyno.png"))
             .unwrap()
@@ -165,7 +161,7 @@ mod tests {
 
     #[test]
     fn test_multi_payload() {
-        use crate::data::{Data, DataElement};
+        use crate::core::data::{Data, DataElement};
 
         let mut img = ImageReader::open(asset("images/dyno.png"))
             .unwrap()
