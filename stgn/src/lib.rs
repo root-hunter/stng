@@ -23,7 +23,9 @@ mod tests {
             .unwrap();
         // Un payload ripetitivo che dovrebbe comprimersi bene
         let data = vec![42u8; 10_000];
-        Encoder::encode_bytes(&mut img, &data, None, true).unwrap();
+
+        let encoder = Encoder::default();
+        encoder.encode_bytes(&mut img, &data, None).unwrap();
         let extracted_data = Decoder::decode_bytes(&img, None).unwrap();
         assert_eq!(data, extracted_data);
     }
@@ -53,7 +55,9 @@ mod tests {
             .unwrap();
         let data = "Ciao a tutti mi chiaddsa dsasd asd as dsa dsa adsa asdd d samo Antonio!!!!";
 
-        Encoder::encode_string(&mut img, data, None, false).unwrap();
+        let encoder = Encoder::default();
+
+        encoder.encode_string(&mut img, data, None).unwrap();
 
         let extracted_data = Decoder::decode_string(&img, None).unwrap();
         assert_eq!(data, extracted_data);
@@ -67,7 +71,8 @@ mod tests {
             .unwrap();
         let data = "";
 
-        Encoder::encode_string(&mut img, data, None, false).unwrap();
+        let encoder = Encoder::default();
+        encoder.encode_string(&mut img, data, None).unwrap();
 
         let extracted_data = Decoder::decode_string(&img, None).unwrap();
         assert_eq!(data, extracted_data);
@@ -81,7 +86,8 @@ mod tests {
             .unwrap();
         let data = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
 
-        Encoder::encode_string(&mut img, data, None, false).unwrap();
+        let encoder = Encoder::default();
+        encoder.encode_string(&mut img, data, None).unwrap();
 
         let extracted_data = Decoder::decode_string(&img, None).unwrap();
         assert_eq!(data, extracted_data);
@@ -95,7 +101,8 @@ mod tests {
             .unwrap();
         let data = "Ciao a tutti mi chiaddsa dsasd asd as dsa dsa adsa asdd d samo Antonio!!!! こんにちは世界";
 
-        Encoder::encode_string(&mut img, data, None, false).unwrap();
+        let encoder = Encoder::default();
+        encoder.encode_string(&mut img, data, None).unwrap();
         let extracted_data = Decoder::decode_string(&img, None).unwrap();
         assert_eq!(data, extracted_data);
     }
@@ -108,7 +115,10 @@ mod tests {
             .unwrap();
         let file_path = asset(SECRET_TEST_PATH);
         let file_path_str = file_path.to_str().unwrap();
-        Encoder::encode_file(&mut img, file_path_str, None, false).unwrap();
+
+        let encoder = Encoder::default();
+        encoder.encode_file(&mut img, file_path_str, None).unwrap();
+
         let extracted_data = Decoder::decode_string(&img, None).unwrap();
         let expected_data = std::fs::read_to_string(file_path_str).unwrap();
         assert_eq!(expected_data, extracted_data);
@@ -121,7 +131,8 @@ mod tests {
             .decode()
             .unwrap();
         let data = vec![0, 255, 128, 64, 32, 16, 8, 4, 2, 1];
-        Encoder::encode_bytes(&mut img, &data, None, false).unwrap();
+        let encoder = Encoder::default();
+        encoder.encode_bytes(&mut img, &data, None).unwrap();
         let extracted_data = Decoder::decode_bytes(&img, None).unwrap();
         assert_eq!(data, extracted_data);
     }
@@ -133,7 +144,8 @@ mod tests {
             .decode()
             .unwrap();
         let data = crate::MAGIC.to_vec();
-        Encoder::encode_bytes(&mut img, &data, None, false).unwrap();
+        let encoder = Encoder::default();
+        encoder.encode_bytes(&mut img, &data, None).unwrap();
         let extracted_data = Decoder::decode_bytes(&img, None).unwrap();
         assert_eq!(data, extracted_data);
     }
@@ -148,7 +160,10 @@ mod tests {
             .unwrap();
         let data = "This is a secret message that will be encrypted using AES-256.";
         let secret = EncryptionSecret::Aes256(vec![0; 32]); // Chiave fittizia per il test
-        Encoder::encode_string(&mut img, data, Some(&secret), false).unwrap();
+        
+        let encoder = Encoder::default();
+        encoder.encode_string(&mut img, data, Some(&secret)).unwrap();
+        
         let extracted_data = Decoder::decode_string(&img, Some(&secret)).unwrap();
         assert_eq!(data, extracted_data);
     }
@@ -167,7 +182,8 @@ mod tests {
             .add(DataElement::text("note", "This is a second entry"))
             .add(DataElement::bytes("raw", vec![1, 2, 3, 4, 5]));
 
-        Encoder::encode_payload(&mut img, &payload, None, false).unwrap();
+        let encoder = Encoder::default();
+        encoder.encode_payload(&mut img, &payload, None).unwrap();
 
         let decoded = Decoder::decode_payload(&img, None).unwrap();
         assert_eq!(decoded.get_text("title"), Some("Hello, world!"));

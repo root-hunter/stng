@@ -1,6 +1,6 @@
 use image::ImageReader;
 use stgn::{
-    core::{decoder::Decoder, encoder::Encoder},
+    core::{decoder::Decoder, encoder::{self, Encoder}},
     embedding::pdf::PdfEmbedding,
     utils::{bytes_to_human, init_logging},
 };
@@ -27,7 +27,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let file_path = "texts/commedia.txt";
 
-    Encoder::encode_file(&mut img, file_path, None, false)?;
+    let encoder = Encoder::default();
+
+    encoder.encode_file(&mut img, file_path, None)?;
     img.save("images/encoded_image.png")?;
 
     let img2 = ImageReader::open("images/encoded_image.png")?.decode()?;

@@ -8,26 +8,66 @@ use crate::core::{
     header::Header,
 };
 
-pub struct Encoder;
+pub struct EncoderRGBChannels {
+    pub r: bool,
+    pub g: bool,
+    pub b: bool,
+}
+
+impl Default for EncoderRGBChannels {
+    fn default() -> Self {
+        Self {
+            r: true,
+            g: true,
+            b: true,
+        }
+    }
+}
+
+pub struct EncoderConfig {
+    pub channels: EncoderRGBChannels,
+    pub compress: bool,
+}
+
+impl Default for EncoderConfig {
+    fn default() -> Self {
+        Self {
+            channels: EncoderRGBChannels::default(),
+            compress: true,
+        }
+    }
+}
+
+pub struct Encoder{
+    pub configs: EncoderConfig,
+}
+
+impl Default for Encoder {
+    fn default() -> Self {
+        Self {
+            configs: EncoderConfig::default(),
+        }
+    }
+}
 
 impl Encoder {
     /// Core: serializes `data` with postcard, optionally encrypts, then LSB-encodes.
     pub fn encode_payload(
+        &self,
         img: &mut DynamicImage,
         data: &Data,
         secret: Option<&EncryptionSecret>,
-        compress: bool,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let serialized = to_allocvec(data)?;
-        Encoder::encode_raw(img, &serialized, secret, compress)
+        self.encode_raw(img, &serialized, secret)
     }
 
     /// Low-level: takes already-assembled raw bytes, wraps them in auth+header, writes LSB.
     fn encode_raw(
+        &self,
         img: &mut DynamicImage,
         raw: &[u8],
         secret: Option<&EncryptionSecret>,
-        compress: bool,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let auth = SecureContext::new(match secret {
             Some(EncryptionSecret::Aes256(_)) => EncryptionType::Aes256,
@@ -35,7 +75,7 @@ impl Encoder {
         });
 
         // Comprimi il payload solo se richiesto
-        let payload_data = if compress {
+        let payload_data = if self.configs.compress {
             let mut encoder = DeflateEncoder::new(Vec::new(), Compression::default());
             use std::io::Write;
             encoder.write_all(raw)?;
@@ -57,7 +97,7 @@ impl Encoder {
         let auth_bytes = to_slice(&auth, &mut auth_buf)?;
         let auth_len = auth_bytes.len() as u8;
 
-        let header = Header::new(payload.len(), compress);
+        let header = Header::new(payload.len(), self.configs.compress);
         let mut header_buf = [0u8; 16];
         let header_bytes = to_slice(&header, &mut header_buf)?;
         let header_len = header_bytes.len() as u8;
@@ -118,19 +158,19 @@ impl Encoder {
     // ── Convenience wrappers ──────────────────────────────────────────────────
 
     pub fn encode_string(
+        &self,
         img: &mut DynamicImage,
         text: &str,
         secret: Option<&EncryptionSecret>,
-        compress: bool,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        Encoder::encode_payload(img, &Data::from_text(text), secret, compress)
+        self.encode_payload(img, &Data::from_text(text), secret)
     }
 
     pub fn encode_file(
+        &self,
         img: &mut DynamicImage,
         file_path: &str,
         secret: Option<&EncryptionSecret>,
-        compress: bool,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let content = std::fs::read(file_path)?;
         let name = std::path::Path::new(file_path)
@@ -138,38 +178,37 @@ impl Encoder {
             .and_then(|n| n.to_str())
             .unwrap_or("file")
             .to_string();
-        Encoder::encode_payload(img, &Data::from_file(name, content), secret, compress)
+        self.encode_payload(img, &Data::from_file(name, content), secret)
     }
 
     pub fn encode_bytes(
+        &self,
         img: &mut DynamicImage,
         data: &[u8],
         secret: Option<&EncryptionSecret>,
-        compress: bool,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        Encoder::encode_payload(
+        self.encode_payload(
             img,
             &Data::from_bytes_payload(data.to_vec()),
             secret,
-            compress,
         )
     }
 
     /// Encode multiple named entries in a single image.
     pub fn encode_multi(
+        &self,
         img: &mut DynamicImage,
         entries: Vec<DataElement>,
         secret: Option<&EncryptionSecret>,
-        compress: bool,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut payload = Data::new();
         for e in entries {
             payload.push(e);
         }
-        Encoder::encode_payload(img, &payload, secret, compress)
+        self.encode_payload(img, &payload, secret)
     }
 
-    pub fn max_capacity(img: &DynamicImage) -> usize {
+    pub fn max_capacity(&self, img: &DynamicImage) -> usize {
         (img.width() * img.height() * 3 / 8) as usize
     }
 }

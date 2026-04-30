@@ -145,7 +145,10 @@ pub fn encode_string_secure(
     let mut img =
         image::load_from_memory(image_bytes).map_err(|e| JsValue::from_str(&e.to_string()))?;
     let secret = parse_secret(encryption, key);
-    Encoder::encode_string(&mut img, message, secret.as_ref(), compress)
+    let mut encoder = Encoder::default();
+    encoder.configs.compress = compress;
+
+    encoder.encode_string(&mut img, message, secret.as_ref())
         .map_err(|e| JsValue::from_str(&e.to_string()))?;
     img_to_png_bytes(img)
 }
@@ -154,7 +157,9 @@ pub fn encode_string_secure(
 pub fn encode_max_capacity(image_bytes: &[u8]) -> Result<usize, JsValue> {
     let img =
         image::load_from_memory(image_bytes).map_err(|e| JsValue::from_str(&e.to_string()))?;
-    Ok(Encoder::max_capacity(&img))
+    let encoder = Encoder::default();
+    
+    Ok(encoder.max_capacity(&img))
 }
 
 #[wasm_bindgen]
@@ -214,7 +219,10 @@ pub fn encode_payload(
     let mut img =
         image::load_from_memory(image_bytes).map_err(|e| JsValue::from_str(&e.to_string()))?;
     let secret = parse_secret(encryption, key);
-    Encoder::encode_payload(&mut img, &data, secret.as_ref(), compress)
+    let mut encoder = Encoder::default();
+    encoder.configs.compress = compress;
+
+    encoder.encode_payload(&mut img, &data, secret.as_ref())
         .map_err(|e| JsValue::from_str(&e.to_string()))?;
     img_to_png_bytes(img)
 }
