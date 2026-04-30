@@ -114,7 +114,14 @@ cli-help:
 	@echo ""
 	@echo "CLI examples:"
 	@echo ""
-	@echo "  make run ARGS=\"encode -i input.png -o output.png --data-strings 'secret message'\""
-	@echo "  make run ARGS=\"decode -i output.png --data-strings 'secret message'\""
-	@echo "  make run ARGS=\"max-capacity -i input.png\""
+	@echo "  make run ARGS=\"-i input.png encode -o output.png -s 'secret message'\""
+	@echo "  make run ARGS=\"-i output.png decode"
+	@echo "  make run ARGS=\"-i input.png max-capacity\""
 	@echo ""
+
+cli-test-encode:
+	mkdir -p tmp
+	$(CARGO) run -p stgn-cli --release -- -i tests/images/sample.jpg encode -s "Hello, World!" -f "tests/data/secret.txt" -o tmp/encoded.png
+
+cli-test-decode:
+	$(CARGO) run -p stgn-cli --release -- -i tmp/encoded.png decode -e tmp/decoded_files
