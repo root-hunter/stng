@@ -12,9 +12,12 @@ pub use embedding::pdf::PdfEmbedding;
 
 mod tests {
 
+    const IMAGE_TEST_PATH: &str = "tests/images/sample.jpg";
+    const SECRET_TEST_PATH: &str = "tests/data/secret.txt";
+
     #[test]
     fn test_compression_roundtrip() {
-        let mut img = ImageReader::open(asset("images/dyno.png"))
+        let mut img = ImageReader::open(asset(IMAGE_TEST_PATH))
             .unwrap()
             .decode()
             .unwrap();
@@ -44,7 +47,7 @@ mod tests {
 
     #[test]
     fn test_steganography() {
-        let mut img = ImageReader::open(asset("images/stego.jpg"))
+        let mut img = ImageReader::open(asset(IMAGE_TEST_PATH))
             .unwrap()
             .decode()
             .unwrap();
@@ -58,7 +61,7 @@ mod tests {
 
     #[test]
     fn test_empty_string() {
-        let mut img = ImageReader::open(asset("images/stego.jpg"))
+        let mut img = ImageReader::open(asset(IMAGE_TEST_PATH))
             .unwrap()
             .decode()
             .unwrap();
@@ -72,7 +75,7 @@ mod tests {
 
     #[test]
     fn test_long_string() {
-        let mut img = ImageReader::open(asset("images/stego.jpg"))
+        let mut img = ImageReader::open(asset(IMAGE_TEST_PATH))
             .unwrap()
             .decode()
             .unwrap();
@@ -86,7 +89,7 @@ mod tests {
 
     #[test]
     fn test_non_ascii_string() {
-        let mut img = ImageReader::open(asset("images/stego.jpg"))
+        let mut img = ImageReader::open(asset(IMAGE_TEST_PATH))
             .unwrap()
             .decode()
             .unwrap();
@@ -99,11 +102,11 @@ mod tests {
 
     #[test]
     fn test_file_encoding() {
-        let mut img = ImageReader::open(asset("images/dyno.png"))
+        let mut img = ImageReader::open(asset(IMAGE_TEST_PATH))
             .unwrap()
             .decode()
             .unwrap();
-        let file_path = asset("texts/commedia.txt");
+        let file_path = asset(SECRET_TEST_PATH);
         let file_path_str = file_path.to_str().unwrap();
         Encoder::encode_file(&mut img, file_path_str, None, false).unwrap();
         let extracted_data = Decoder::decode_string(&img, None).unwrap();
@@ -113,7 +116,7 @@ mod tests {
 
     #[test]
     fn test_binary_encoding() {
-        let mut img = ImageReader::open(asset("images/dyno.png"))
+        let mut img = ImageReader::open(asset(IMAGE_TEST_PATH))
             .unwrap()
             .decode()
             .unwrap();
@@ -125,7 +128,7 @@ mod tests {
 
     #[test]
     fn test_magic_bytes() {
-        let mut img = ImageReader::open(asset("images/dyno.png"))
+        let mut img = ImageReader::open(asset(IMAGE_TEST_PATH))
             .unwrap()
             .decode()
             .unwrap();
@@ -139,7 +142,7 @@ mod tests {
     fn test_aes_encryption() {
         use crate::core::auth::EncryptionSecret;
 
-        let mut img = ImageReader::open(asset("images/dyno.png"))
+        let mut img = ImageReader::open(asset(IMAGE_TEST_PATH))
             .unwrap()
             .decode()
             .unwrap();
@@ -154,7 +157,7 @@ mod tests {
     fn test_multi_payload() {
         use crate::core::data::{Data, DataElement};
 
-        let mut img = ImageReader::open(asset("images/dyno.png"))
+        let mut img = ImageReader::open(asset(IMAGE_TEST_PATH))
             .unwrap()
             .decode()
             .unwrap();
