@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  # ── Native tests (default features, no JPEG) ─────────────────────────────
+  test:
+    name: Test (native)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Install system deps (mozjpeg)
+        run: sudo apt-get update && sudo apt-get install -y nasm
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Clippy (default features)
+        run: cargo clippy --workspace --exclude stgn-wasm -- -D warnings
+
+      - name: Clippy (jpeg feature)
+        run: cargo clippy -p stgn --features jpeg -- -D warnings
+
+      - name: Test (default features)
+        run: cargo test --workspace --exclude stgn-wasm
+
+      - name: Test (jpeg feature)
+        run: cargo test -p stgn --features jpeg
+
+      - name: Test juniward (doc tests)
+        run: cargo test -p juniward --doc
+
+  # ── WASM build ────────────────────────────────────────────────────────────
+  wasm:
+    name: Build WASM
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Rust stable + wasm32 target
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-wasm-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-wasm-
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Build stgn-wasm
+        run: wasm-pack build stgn-wasm --target web --release
+
+      - name: Verify stgn (no jpeg feature) compiles for wasm32
+        run: cargo build -p stgn --target wasm32-unknown-unknown
