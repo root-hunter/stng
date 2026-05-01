@@ -1,0 +1,3 @@
+[submodule "juniward"]
+	path = juniward
+	url = https://github.com/root-hunter/juniward.git

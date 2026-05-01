@@ -37,6 +37,7 @@ impl Decoder {
             _ => return Err("Unsupported image format".into()),
         };
 
+        // Iterator get only the LSB of each channel byte
         let mut bit_iter = channels.iter().map(|b| b & 1);
 
         macro_rules! read_byte {

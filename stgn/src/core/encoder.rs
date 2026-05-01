@@ -1,5 +1,5 @@
 use flate2::{Compression, write::DeflateEncoder};
-use image::DynamicImage;
+use image::{DynamicImage, GenericImageView};
 use postcard::{to_allocvec, to_slice};
 
 use crate::core::{
@@ -8,31 +8,31 @@ use crate::core::{
     header::Header,
 };
 
-pub struct EncoderRGBChannels {
-    pub r: bool,
-    pub g: bool,
-    pub b: bool,
-}
+pub const CHANNEL_R: u8 = 0x01;
+pub const CHANNEL_G: u8 = 0x02;
+pub const CHANNEL_B: u8 = 0x04;
 
-impl Default for EncoderRGBChannels {
-    fn default() -> Self {
-        Self {
-            r: true,
-            g: true,
-            b: true,
-        }
-    }
-}
+pub type RGBChannelMask = u8; // Bitmask: 1 for R, 2 for G, 4 for B
+
+pub const BIT_MASK_LOW: u8 = 0x01; // Use only the least significant bit
+pub const BIT_MASK_2: u8 = 0x03; // Use the two least significant bits
+pub const BIT_MASK_4: u8 = 0x0F; // Use the four least significant bits
+pub const BIT_MASK_8: u8 = 0xFF; // Use all bits
+pub const BIT_MASK_HIGH: u8 = 0x80; // Use the most significant bit
+
+pub type BitMask = u8;
 
 pub struct EncoderConfig {
-    pub channels: EncoderRGBChannels,
+    pub channels: RGBChannelMask,
+    pub bit_mask: BitMask,
     pub compress: bool,
 }
 
 impl Default for EncoderConfig {
     fn default() -> Self {
         Self {
-            channels: EncoderRGBChannels::default(),
+            channels: CHANNEL_R | CHANNEL_G | CHANNEL_B, // Use all RGB channels by default (1 | 2 | 4)
+            bit_mask: BIT_MASK_LOW, // Use only the least significant bit
             compress: true,
         }
     }
@@ -51,6 +51,10 @@ impl Default for Encoder {
 }
 
 impl Encoder {
+    pub fn new(configs: EncoderConfig) -> Self {
+        Self { configs }
+    }
+    
     /// Core: serializes `data` with postcard, optionally encrypts, then LSB-encodes.
     pub fn encode_payload(
         &self,
@@ -90,7 +94,7 @@ impl Encoder {
             payload_data
         };
 
-        let (width, height) = (img.width(), img.height());
+        let (width, height) = img.dimensions();
         let capacity = (width * height * 3) as usize;
 
         let mut auth_buf = [0u8; 16];
@@ -209,6 +213,7 @@ impl Encoder {
     }
 
     pub fn max_capacity(&self, img: &DynamicImage) -> usize {
-        (img.width() * img.height() * 3 / 8) as usize
+        let (width, height) = img.dimensions();
+        (width * height * 3 / 8) as usize
     }
 }
