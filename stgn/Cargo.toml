@@ -23,5 +23,8 @@ flate2 = "1.0"
 lopdf = "0.40.0"
 juniward = { path = "../juniward", optional = true }
 
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "0.2", features = ["js"] }
+
 [features]
 jpeg = ["juniward"]
